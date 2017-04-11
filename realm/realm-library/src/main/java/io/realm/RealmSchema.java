@@ -93,7 +93,7 @@ public abstract class RealmSchema {
         if (this.columnIndices != null) {
             throw new IllegalStateException("An instance of ColumnIndices is already set.");
         }
-        this.columnIndices = columnIndices.clone();
+        this.columnIndices = new ColumnIndices(columnIndices, true);
     }
 
     final void setInitialColumnIndices(long version, Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap) {
@@ -117,9 +117,9 @@ public abstract class RealmSchema {
         columnIndices.copyFrom(schemaVersion, mediator);
     }
 
-    final ColumnIndices cloneColumnIndices() {
+    final ColumnIndices getImmutableColumnIndicies() {
         checkIndices();
-        return columnIndices.clone();
+        return new ColumnIndices(columnIndices, false);
     }
 
     final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {

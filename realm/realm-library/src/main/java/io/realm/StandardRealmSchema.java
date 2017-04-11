@@ -71,10 +71,8 @@ class StandardRealmSchema extends RealmSchema {
 
         String internalClassName = TABLE_PREFIX + className;
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
-
         Table table = realm.getSharedRealm().getTable(internalClassName);
-        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-        return new StandardRealmObjectSchema(realm, table, columnIndices);
+        return new StandardRealmObjectSchema(realm, this, table);
     }
 
     /**
@@ -91,9 +89,7 @@ class StandardRealmSchema extends RealmSchema {
             if (!Table.isModelTable(tableName)) {
                 continue;
             }
-            Table table = realm.getSharedRealm().getTable(tableName);
-            StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-            schemas.add(new StandardRealmObjectSchema(realm, table, columnIndices));
+            schemas.add(new StandardRealmObjectSchema(realm,  this, realm.getSharedRealm().getTable(tableName)));
         }
         return schemas;
     }
@@ -116,9 +112,7 @@ class StandardRealmSchema extends RealmSchema {
         if (realm.getSharedRealm().hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
-        Table table = realm.getSharedRealm().getTable(internalTableName);
-        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-        return new StandardRealmObjectSchema(realm, table, columnIndices);
+        return new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(internalTableName));
     }
 
     /**
@@ -186,8 +180,7 @@ class StandardRealmSchema extends RealmSchema {
             table.setPrimaryKey(pkField);
         }
 
-        StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-        return new StandardRealmObjectSchema(realm, table, columnIndices);
+        return new StandardRealmObjectSchema(realm, this, table);
     }
 
     private void checkEmpty(String str, String error) {
@@ -252,7 +245,7 @@ class StandardRealmSchema extends RealmSchema {
         }
         if (classSchema == null) {
             Table table = getTable(clazz);
-            classSchema = new StandardRealmObjectSchema(realm, table, getColumnInfo(originalClass).getIndicesMap());
+            classSchema = new StandardRealmObjectSchema(realm, this, table, getColumnInfo(originalClass));
             classToSchema.put(originalClass, classSchema);
         }
         if (isProxyClass(originalClass, clazz)) {
@@ -270,11 +263,15 @@ class StandardRealmSchema extends RealmSchema {
             if (!realm.getSharedRealm().hasTable(className)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
-            Table table = realm.getSharedRealm().getTable(className);
-            StandardRealmObjectSchema.DynamicColumnMap columnIndices = new StandardRealmObjectSchema.DynamicColumnMap(table);
-            dynamicSchema = new StandardRealmObjectSchema(realm, table, columnIndices);
+            dynamicSchema = new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(className));
             dynamicClassToSchema.put(className, dynamicSchema);
         }
         return dynamicSchema;
+    }
+
+    public void linkFields(String[] names) {
+        for (String name : names) {
+
+        }
     }
 }

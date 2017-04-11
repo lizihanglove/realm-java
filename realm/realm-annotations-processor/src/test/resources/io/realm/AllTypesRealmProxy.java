@@ -31,65 +31,56 @@ import org.json.JSONObject;
 public class AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
-    static final class AllTypesColumnInfo extends ColumnInfo
-            implements Cloneable {
-
-        public long columnStringIndex;
-        public long columnLongIndex;
-        public long columnFloatIndex;
-        public long columnDoubleIndex;
-        public long columnBooleanIndex;
-        public long columnDateIndex;
-        public long columnBinaryIndex;
-        public long columnObjectIndex;
-        public long columnRealmListIndex;
+    static final class AllTypesColumnInfo extends ColumnInfo {
+        long columnStringIndex;
+        long columnLongIndex;
+        long columnFloatIndex;
+        long columnDoubleIndex;
+        long columnBooleanIndex;
+        long columnDateIndex;
+        long columnBinaryIndex;
+        long columnObjectIndex;
+        long columnRealmListIndex;
 
         AllTypesColumnInfo(String path, Table table) {
-            final Map<String, Long> indicesMap = new HashMap<String, Long>(9);
-            this.columnStringIndex = getValidColumnIndex(path, table, "AllTypes", "columnString");
-            indicesMap.put("columnString", this.columnStringIndex);
-            this.columnLongIndex = getValidColumnIndex(path, table, "AllTypes", "columnLong");
-            indicesMap.put("columnLong", this.columnLongIndex);
-            this.columnFloatIndex = getValidColumnIndex(path, table, "AllTypes", "columnFloat");
-            indicesMap.put("columnFloat", this.columnFloatIndex);
-            this.columnDoubleIndex = getValidColumnIndex(path, table, "AllTypes", "columnDouble");
-            indicesMap.put("columnDouble", this.columnDoubleIndex);
-            this.columnBooleanIndex = getValidColumnIndex(path, table, "AllTypes", "columnBoolean");
-            indicesMap.put("columnBoolean", this.columnBooleanIndex);
-            this.columnDateIndex = getValidColumnIndex(path, table, "AllTypes", "columnDate");
-            indicesMap.put("columnDate", this.columnDateIndex);
-            this.columnBinaryIndex = getValidColumnIndex(path, table, "AllTypes", "columnBinary");
-            indicesMap.put("columnBinary", this.columnBinaryIndex);
-            this.columnObjectIndex = getValidColumnIndex(path, table, "AllTypes", "columnObject");
-            indicesMap.put("columnObject", this.columnObjectIndex);
-            this.columnRealmListIndex = getValidColumnIndex(path, table, "AllTypes", "columnRealmList");
-            indicesMap.put("columnRealmList", this.columnRealmListIndex);
+            super(9);
+            this.columnStringIndex = addColumnIndex(table, "columnString", path, "AllTypes");
+            this.columnLongIndex = addColumnIndex(table, "columnLong", path, "AllTypes");
+            this.columnFloatIndex = addColumnIndex(table, "columnFloat", path, "AllTypes");
+            this.columnDoubleIndex = addColumnIndex(table, "columnDouble", path, "AllTypes");
+            this.columnBooleanIndex = addColumnIndex(table, "columnBoolean", path, "AllTypes");
+            this.columnDateIndex = addColumnIndex(table, "columnDate", path, "AllTypes");
+            this.columnBinaryIndex = addColumnIndex(table, "columnBinary", path, "AllTypes");
+            this.columnObjectIndex = addColumnIndex(table, "columnObject", path, "AllTypes");
+            this.columnRealmListIndex = addColumnIndex(table, "columnRealmList", path, "AllTypes");
+        }
 
-            setIndicesMap(indicesMap);
+        AllTypesColumnInfo(ColumnInfo src, boolean mutable) {
+            super(src, mutable);
+            copy(src, this);
         }
 
         @Override
-        public final void copyColumnInfoFrom(ColumnInfo other) {
-            final AllTypesColumnInfo otherInfo = (AllTypesColumnInfo) other;
-            this.columnStringIndex = otherInfo.columnStringIndex;
-            this.columnLongIndex = otherInfo.columnLongIndex;
-            this.columnFloatIndex = otherInfo.columnFloatIndex;
-            this.columnDoubleIndex = otherInfo.columnDoubleIndex;
-            this.columnBooleanIndex = otherInfo.columnBooleanIndex;
-            this.columnDateIndex = otherInfo.columnDateIndex;
-            this.columnBinaryIndex = otherInfo.columnBinaryIndex;
-            this.columnObjectIndex = otherInfo.columnObjectIndex;
-            this.columnRealmListIndex = otherInfo.columnRealmListIndex;
-
-            setIndicesMap(otherInfo.getIndicesMap());
+        protected final ColumnInfo copy(boolean mutable) {
+            return new AllTypesColumnInfo(this, mutable);
         }
 
         @Override
-        public final AllTypesColumnInfo clone() {
-            return (AllTypesColumnInfo) super.clone();
+        protected final void copy(ColumnInfo rawSrc, ColumnInfo rawDst) {
+            final AllTypesColumnInfo src = (AllTypesColumnInfo) rawSrc;
+            final AllTypesColumnInfo dst = (AllTypesColumnInfo) rawDst;
+            dst.columnStringIndex = src.columnStringIndex;
+            dst.columnLongIndex = src.columnLongIndex;
+            dst.columnFloatIndex = src.columnFloatIndex;
+            dst.columnDoubleIndex = src.columnDoubleIndex;
+            dst.columnBooleanIndex = src.columnBooleanIndex;
+            dst.columnDateIndex = src.columnDateIndex;
+            dst.columnBinaryIndex = src.columnBinaryIndex;
+            dst.columnObjectIndex = src.columnObjectIndex;
+            dst.columnRealmListIndex = src.columnRealmListIndex;
         }
-
     }
+
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;

@@ -272,6 +272,10 @@ public abstract class RealmObjectSchema {
 
     abstract RealmObjectSchema add(String name, RealmFieldType type, RealmObjectSchema linkedTo);
 
+    abstract long getAndCheckFieldIndex(String fieldName);
+
+    abstract Table getTable();
+
     /**
      * Function interface, used when traversing all objects of the current class and apply a function on each.
      *
@@ -291,7 +295,4 @@ public abstract class RealmObjectSchema {
             this.defaultNullable = defaultNullable;
         }
     }
-
-    abstract Table getTable();
-    abstract long getAndCheckFieldIndex(String fieldName);
 }

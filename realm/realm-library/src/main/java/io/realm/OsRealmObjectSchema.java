@@ -203,6 +203,16 @@ class OsRealmObjectSchema extends RealmObjectSchema {
         throw new UnsupportedOperationException();
     }
 
+// FIXME!!
+//    private Set<Property> getProperties() {
+//        long[] ptrs = nativeGetProperties(nativePtr);
+//        Set<Property> properties = new LinkedHashSet<>(ptrs.length);
+//        for (int i = 0; i < ptrs.length; i++) {
+//            properties.add(new Property(ptrs[i]));
+//        }
+//        return properties;
+//    }
+
     static native long nativeCreateRealmObjectSchema(String className);
 
     static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
