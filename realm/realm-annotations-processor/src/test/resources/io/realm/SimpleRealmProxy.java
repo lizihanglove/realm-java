@@ -31,37 +31,35 @@ import org.json.JSONObject;
 public class SimpleRealmProxy extends some.test.Simple
         implements RealmObjectProxy, SimpleRealmProxyInterface {
 
-    static final class SimpleColumnInfo extends ColumnInfo
-            implements Cloneable {
-
-        public long nameIndex;
-        public long ageIndex;
+    static final class SimpleColumnInfo extends ColumnInfo {
+        long nameIndex;
+        long ageIndex;
 
         SimpleColumnInfo(String path, Table table) {
-            final Map<String, Long> indicesMap = new HashMap<String, Long>(2);
-            this.nameIndex = getValidColumnIndex(path, table, "Simple", "name");
-            indicesMap.put("name", this.nameIndex);
-            this.ageIndex = getValidColumnIndex(path, table, "Simple", "age");
-            indicesMap.put("age", this.ageIndex);
+            super(2);
+            this.nameIndex = addColumnIndex(table, "name", path, "Simple");
+            this.ageIndex = addColumnIndex(table, "age", path, "Simple");
+        }
 
-            setIndicesMap(indicesMap);
+        SimpleColumnInfo(ColumnInfo src, boolean mutable) {
+            super(src, mutable);
+            copy(src, this);
         }
 
         @Override
-        public final void copyColumnInfoFrom(ColumnInfo other) {
-            final SimpleColumnInfo otherInfo = (SimpleColumnInfo) other;
-            this.nameIndex = otherInfo.nameIndex;
-            this.ageIndex = otherInfo.ageIndex;
-
-            setIndicesMap(otherInfo.getIndicesMap());
+        protected final ColumnInfo copy(boolean mutable) {
+            return new SimpleColumnInfo(this, mutable);
         }
 
         @Override
-        public final SimpleColumnInfo clone() {
-            return (SimpleColumnInfo) super.clone();
+        protected final void copy(ColumnInfo rawSrc, ColumnInfo rawDst) {
+            final SimpleColumnInfo src = (SimpleColumnInfo) rawSrc;
+            final SimpleColumnInfo dst = (SimpleColumnInfo) rawDst;
+            dst.nameIndex = src.nameIndex;
+            dst.ageIndex = src.ageIndex;
         }
-
     }
+
     private SimpleColumnInfo columnInfo;
     private ProxyState<some.test.Simple> proxyState;
     private static final List<String> FIELD_NAMES;

@@ -143,70 +143,64 @@ public class RealmProxyClassGenerator {
                 columnInfoClassName(),                       // full qualified name of the item to generate
                 "class",                                     // the type of the item
                 EnumSet.of(Modifier.STATIC, Modifier.FINAL), // modifiers to apply
-                "ColumnInfo",                                // base class
-                "Cloneable")                                 // interfaces
-                .emitEmptyLine();
+                "ColumnInfo");                               // base class
 
         // fields
         for (VariableElement variableElement : metadata.getFields()) {
-            writer.emitField("long", columnIndexVarName(variableElement),
-                    EnumSet.of(Modifier.PUBLIC));
+            writer.emitField("long", columnIndexVarName(variableElement));
         }
         writer.emitEmptyLine();
 
-        // constructor
-        writer.beginConstructor(EnumSet.noneOf(Modifier.class),
-                "String", "path",
-                "Table", "table");
-        writer.emitStatement("final Map<String, Long> indicesMap = new HashMap<String, Long>(%s)",
-                metadata.getFields().size());
+        // constructor #1
+        writer.beginConstructor(
+                EnumSet.noneOf(Modifier.class),
+                "String", "path", "Table", "table");
+        writer.emitStatement("super(%s)", metadata.getFields().size());
         for (VariableElement variableElement : metadata.getFields()) {
-            final String columnName = variableElement.getSimpleName().toString();
-            final String columnIndexVarName = columnIndexVarName(variableElement);
-            writer.emitStatement("this.%s = getValidColumnIndex(path, table, \"%s\", \"%s\")",
-                    columnIndexVarName, simpleClassName, columnName)
-                    .emitStatement("indicesMap.put(\"%s\", this.%s)", columnName, columnIndexVarName);
+            writer.emitStatement(
+                    "this.%1$sIndex = addColumnIndex(table, \"%1$s\", path, \"%2$s\")",
+                    variableElement.getSimpleName().toString(), simpleClassName);
         }
-
-        writer.emitEmptyLine()
-                .emitStatement("setIndicesMap(indicesMap)");
         writer.endConstructor()
                 .emitEmptyLine();
 
-        // copyColumnInfoFrom method
+        // constructor #2
+        writer.beginConstructor(
+                EnumSet.noneOf(Modifier.class),
+                "ColumnInfo", "src", "boolean", "mutable");
+        writer.emitStatement("super(src, mutable)")
+                .emitStatement("copy(src, this)");
+        writer.endConstructor()
+                .emitEmptyLine();
+
+        // no-args copy method
         writer.emitAnnotation("Override")
                 .beginMethod(
-                        "void",                      // return type
-                        "copyColumnInfoFrom",        // method name
-                        EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), // modifiers
-                        "ColumnInfo", "other");      // parameters
-        {
-            writer.emitStatement("final %1$s otherInfo = (%1$s) other", columnInfoClassName());
-
-            // copy field values
-            for (VariableElement variableElement : metadata.getFields()) {
-                writer.emitStatement("this.%1$s = otherInfo.%1$s", columnIndexVarName(variableElement));
-            }
-            writer.emitEmptyLine()
-                    .emitStatement("setIndicesMap(otherInfo.getIndicesMap())");
-        }
+                        "ColumnInfo",                                   // return type
+                        "copy",                                         // method name
+                        EnumSet.of(Modifier.PROTECTED, Modifier.FINAL), // modifiers
+                        "boolean", "mutable");     // parameters
+        writer.emitStatement("return new %s(this, mutable)", columnInfoClassName());
         writer.endMethod()
                 .emitEmptyLine();
 
-        // clone method
-        //@formatter:off
+        // copy method
         writer.emitAnnotation("Override")
-            .beginMethod(
-                columnInfoClassName(),       // return type
-                "clone",                     // method name
-                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL)) // modifiers
-                // method body
-                .emitStatement("return (%1$s) super.clone()", columnInfoClassName())
-                .endMethod()
+                .beginMethod(
+                        "void",                                          // return type
+                        "copy",                                          // method name
+                        EnumSet.of(Modifier.PROTECTED, Modifier.FINAL),  // modifiers
+                        "ColumnInfo", "rawSrc", "ColumnInfo", "rawDst"); // parameters
+        {
+            writer.emitStatement("final %1$s src = (%1$s) rawSrc", columnInfoClassName());
+            writer.emitStatement("final %1$s dst = (%1$s) rawDst", columnInfoClassName());
+            for (VariableElement variableElement : metadata.getFields()) {
+                writer.emitStatement("dst.%1$s = src.%1$s", columnIndexVarName(variableElement));
+            }
+        }
+        writer.endMethod();
+        writer.endType()
                 .emitEmptyLine();
-        //@formatter:on
-
-        writer.endType();
     }
 
     private void emitClassFields(JavaWriter writer) throws IOException {

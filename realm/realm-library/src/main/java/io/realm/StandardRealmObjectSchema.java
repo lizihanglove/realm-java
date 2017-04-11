@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.realm.annotations.Required;
-import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 
 
@@ -65,20 +64,32 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
     private final BaseRealm realm;
-    private final Map<String, Long> columnIndices;
+    private final StandardRealmSchema schema;
+    private final ColumnInfo columnInfo;
     private final Table table;
+
+    /**
+     * Creates a dynamic schema object for a given Realm class.
+     *
+     * @param realm Realm holding the objects.
+     * @param table table representation of the Realm class
+     */
+    StandardRealmObjectSchema(BaseRealm realm, StandardRealmSchema schema, Table table) {
+        this(realm, schema, table, new StandardRealmObjectSchema.DynamicColumnIndices(table));
+    }
 
     /**
      * Creates a schema object for a given Realm class.
      *
      * @param realm Realm holding the objects.
      * @param table table representation of the Realm class
-     * @param columnIndices mapping between field names and column indexes for the given table
+     * @param columnInfo mapping between field names and column indexes for the given table
      */
-    StandardRealmObjectSchema(BaseRealm realm, Table table, Map<String, Long> columnIndices) {
+    StandardRealmObjectSchema(BaseRealm realm, StandardRealmSchema schema, Table table, ColumnInfo columnInfo) {
         this.realm = realm;
+        this.schema = schema;
         this.table = table;
-        this.columnIndices = columnIndices;
+        this.columnInfo = columnInfo;
     }
 
     @Override
@@ -578,6 +589,27 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return list of column indices.
      */
+    void linkFieldDescription(String fieldDescription, RealmFieldType... validColumnTypes) {
+        if (fieldDescription == null || fieldDescription.equals("")) {
+            throw new IllegalArgumentException("Invalid query: field name is empty");
+        }
+        if (fieldDescription.endsWith(".")) {
+            throw new IllegalArgumentException("Invalid query: field name must not end with a period ('.')");
+        }
+        String[] names = fieldDescription.split("\\.");
+
+        schema.linkFields(names);
+
+    }
+
+    /**
+     * Returns the column indices for the given field name. If a linked field is defined, the column index for
+     * each field is returned.
+     *
+     * @param fieldDescription fieldName or link path to a field name.
+     * @param validColumnTypes valid field type for the last field in a linked field
+     * @return list of column indices.
+     */
     // TODO: consider another caching strategy so linked classes are included in the cache.
     @Override
     long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
@@ -589,8 +621,6 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         }
         String[] names = fieldDescription.split("\\.");
 
-        //final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-
         long[] columnIndices = new long[names.length];
         Table currentTable = table;
         RealmFieldType columnType;
@@ -601,8 +631,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
             if (columnName.length() <= 0) {
                 throw new IllegalArgumentException(String.format(
                         "Invalid query: empty column name in field '%s'.  " +
-                                "A field name must not begin with, end with, or contain adjacent periods ('.').",
-                                fieldDescription));
+                                "A field name must not begin with or contain adjacent periods ('.').",
+                        fieldDescription));
             }
 
             tableName = getTableName(currentTable);
@@ -642,8 +672,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @param fieldName field name to find index for.
      * @return column index or null if it doesn't exists.
      */
-    Long getFieldIndex(String fieldName) {
-        return columnIndices.get(fieldName);
+    long getFieldIndex(String fieldName) {
+        return columnInfo.getColumnIndex(fieldName);
     }
 
     /**
@@ -655,8 +685,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      */
     @Override
     long getAndCheckFieldIndex(String fieldName) {
-        Long index = columnIndices.get(fieldName);
-        if (index == null) {
+        long index = columnInfo.getColumnIndex(fieldName);
+        if (index < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
         return index;
@@ -758,72 +788,27 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         return false;
     }
 
-    public static final class DynamicColumnMap implements Map<String, Long> {
+    static final class DynamicColumnIndices extends ColumnInfo {
         private final Table table;
 
-        DynamicColumnMap(Table table) {
+        DynamicColumnIndices(Table table) {
+            super(null, false);
             this.table = table;
         }
 
         @Override
-        public Long get(Object key) {
-            long ret = table.getColumnIndex((String) key);
-            return ret < 0 ? null : ret;
+        public long getColumnIndex(String columnName) {
+            return table.getColumnIndex(columnName);
         }
 
         @Override
-        public void clear() {
-            throw new UnsupportedOperationException();
+        protected ColumnInfo copy(boolean immutable) {
+            return this;
         }
 
         @Override
-        public boolean containsKey(Object key) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean containsValue(Object value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Set<Entry<String, Long>> entrySet() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Set<String> keySet() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Long put(String key, Long value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void putAll(Map<? extends String, ? extends Long> map) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Long remove(Object key) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public int size() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Collection<Long> values() {
-            throw new UnsupportedOperationException();
+        protected void copy(ColumnInfo src, ColumnInfo dst) {
+            throw new UnsupportedOperationException("DynamicColumnIndices cannot copy");
         }
     }
 }

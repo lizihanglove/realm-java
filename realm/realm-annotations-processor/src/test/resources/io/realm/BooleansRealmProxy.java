@@ -31,45 +31,41 @@ import org.json.JSONObject;
 public class BooleansRealmProxy extends some.test.Booleans
         implements RealmObjectProxy, BooleansRealmProxyInterface {
 
-    static final class BooleansColumnInfo extends ColumnInfo
-            implements Cloneable {
-
-        public long doneIndex;
-        public long isReadyIndex;
-        public long mCompletedIndex;
-        public long anotherBooleanIndex;
+    static final class BooleansColumnInfo extends ColumnInfo {
+        long doneIndex;
+        long isReadyIndex;
+        long mCompletedIndex;
+        long anotherBooleanIndex;
 
         BooleansColumnInfo(String path, Table table) {
-            final Map<String, Long> indicesMap = new HashMap<String, Long>(4);
-            this.doneIndex = getValidColumnIndex(path, table, "Booleans", "done");
-            indicesMap.put("done", this.doneIndex);
-            this.isReadyIndex = getValidColumnIndex(path, table, "Booleans", "isReady");
-            indicesMap.put("isReady", this.isReadyIndex);
-            this.mCompletedIndex = getValidColumnIndex(path, table, "Booleans", "mCompleted");
-            indicesMap.put("mCompleted", this.mCompletedIndex);
-            this.anotherBooleanIndex = getValidColumnIndex(path, table, "Booleans", "anotherBoolean");
-            indicesMap.put("anotherBoolean", this.anotherBooleanIndex);
+            super(4);
+            this.doneIndex = addColumnIndex(table, "done", path, "Booleans");
+            this.isReadyIndex = addColumnIndex(table, "isReady", path, "Booleans");
+            this.mCompletedIndex = addColumnIndex(table, "mCompleted", path, "Booleans");
+            this.anotherBooleanIndex = addColumnIndex(table, "anotherBoolean", path, "Booleans");
+        }
 
-            setIndicesMap(indicesMap);
+        BooleansColumnInfo(ColumnInfo src, boolean mutable) {
+            super(src, mutable);
+            copy(src, this);
         }
 
         @Override
-        public final void copyColumnInfoFrom(ColumnInfo other) {
-            final BooleansColumnInfo otherInfo = (BooleansColumnInfo) other;
-            this.doneIndex = otherInfo.doneIndex;
-            this.isReadyIndex = otherInfo.isReadyIndex;
-            this.mCompletedIndex = otherInfo.mCompletedIndex;
-            this.anotherBooleanIndex = otherInfo.anotherBooleanIndex;
-
-            setIndicesMap(otherInfo.getIndicesMap());
+        protected final ColumnInfo copy(boolean mutable) {
+            return new BooleansColumnInfo(this, mutable);
         }
 
         @Override
-        public final BooleansColumnInfo clone() {
-            return (BooleansColumnInfo) super.clone();
+        protected final void copy(ColumnInfo rawSrc, ColumnInfo rawDst) {
+            final BooleansColumnInfo src = (BooleansColumnInfo) rawSrc;
+            final BooleansColumnInfo dst = (BooleansColumnInfo) rawDst;
+            dst.doneIndex = src.doneIndex;
+            dst.isReadyIndex = src.isReadyIndex;
+            dst.mCompletedIndex = src.mCompletedIndex;
+            dst.anotherBooleanIndex = src.anotherBooleanIndex;
         }
-
     }
+
     private BooleansColumnInfo columnInfo;
     private ProxyState<some.test.Booleans> proxyState;
     private static final List<String> FIELD_NAMES;

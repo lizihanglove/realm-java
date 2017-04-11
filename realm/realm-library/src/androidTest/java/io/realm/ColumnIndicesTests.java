@@ -17,6 +17,7 @@ package io.realm;
 
 import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -81,7 +82,7 @@ public class ColumnIndicesTests {
         final long schemaVersion = 100;
 
         final ColumnIndices columnIndices = create(schemaVersion);
-        final ColumnIndices deepCopy = columnIndices.clone();
+        final ColumnIndices deepCopy = new ColumnIndices(columnIndices, true);
 
         assertEquals(schemaVersion, deepCopy.getSchemaVersion());
         assertEquals(columnIndices.getColumnIndex(Cat.class, Cat.FIELD_NAME),
@@ -108,14 +109,15 @@ public class ColumnIndicesTests {
 
         catColumnInfoInSource.nameIndex++;
 
-        // Checks preconditions.
+        // Checks preconditions
         assertNotEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
         assertNotSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
 
-        target.copyFrom(source,  mediator);
+        target.copyFrom(source, mediator);
 
         assertEquals(sourceSchemaVersion, target.getSchemaVersion());
         assertEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
-        assertSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
+        // update, not replace
+        assertSame(catColumnInfoInTarget, target.getColumnInfo(Cat.class));
     }
 }

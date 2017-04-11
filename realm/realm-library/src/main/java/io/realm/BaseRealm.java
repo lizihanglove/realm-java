@@ -71,7 +71,7 @@ abstract class BaseRealm implements Closeable {
     protected final RealmConfiguration configuration;
     protected SharedRealm sharedRealm;
 
-    protected final StandardRealmSchema schema;
+    protected final RealmSchema schema;
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();

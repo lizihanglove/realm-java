@@ -169,6 +169,16 @@ class OsRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
+    long getAndCheckFieldIndex(String fieldName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    Table getTable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     OsRealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         nativeAddProperty(nativePtr, new Property(name, type, primary, indexed, required).getNativePtr());
         return this;
@@ -182,16 +192,6 @@ class OsRealmObjectSchema extends RealmObjectSchema {
 
     long getNativePtr() {
         return nativePtr;
-    }
-
-    @Override
-    Table getTable() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    long getAndCheckFieldIndex(String fieldName) {
-        throw new UnsupportedOperationException();
     }
 
     private Set<Property> getProperties() {

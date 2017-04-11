@@ -34,7 +34,7 @@ import io.realm.internal.Table;
  */
 class OsRealmSchema extends RealmSchema {
     static final class Creator extends RealmSchema {
-        private final Map<String, RealmObjectSchema> schema = new HashMap<>();
+        private final Map<String, OsRealmObjectSchema> schema = new HashMap<>();
 
         @Override
         public void close() { }
@@ -47,7 +47,7 @@ class OsRealmSchema extends RealmSchema {
 
         @Override
         public Set<RealmObjectSchema> getAll() {
-            return new LinkedHashSet<>(schema.values());
+            return new LinkedHashSet<RealmObjectSchema>(schema.values());
         }
 
         @Override
@@ -98,6 +98,10 @@ class OsRealmSchema extends RealmSchema {
 
     private final long nativePtr;
 
+    // FIXME:
+    // Because making getAll return Set<? Extends RealmObjectSchema> is a breaking change
+    // Creator.getAll must return Set<RealmObjectSchema>.
+    // That means that necessitates the cast inside the loop.
     OsRealmSchema(Creator creator) {
         Set<RealmObjectSchema> realmObjectSchemas = creator.getAll();
         long[] schemaNativePointers = new long[realmObjectSchemas.size()];
