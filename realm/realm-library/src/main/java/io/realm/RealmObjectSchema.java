@@ -29,6 +29,11 @@ import io.realm.internal.Table;
  * @see io.realm.RealmMigration
  */
 public abstract class RealmObjectSchema {
+    private final RealmSchema schema;
+
+    protected RealmObjectSchema(RealmSchema schema) {
+        this.schema = schema;
+    }
 
     /**
      * Release the object schema and any of native resources it might hold.
@@ -266,7 +271,19 @@ public abstract class RealmObjectSchema {
      */
     public abstract RealmFieldType getFieldType(String fieldName);
 
-    abstract long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
+    /**
+     * Parses the passed filed description (@see RealmSchema.getColumnIndices(String, RealmFieldType...).
+     * Because this method may have to deal with several different tables, it is the responsibility
+     * of the Schema, not the ObjectSchema.  This method simply delegates to the Schema method with the
+     * same signature.
+     *
+     * @param fieldDescription fieldName or link path to a field name.
+     * @param validColumnTypes valid field type for the last field in a linked field
+     * @return a pair of arrays:  [0] is column indices, [1] is either NativeObject.NULLPTR or a native table pointer.
+     */
+    protected final long[][] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
+        return schema.getColumnIndices(getTable(), fieldDescription, validColumnTypes);
+    }
 
     abstract RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required);
 

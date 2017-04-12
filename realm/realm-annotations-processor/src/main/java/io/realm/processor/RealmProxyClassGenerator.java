@@ -173,6 +173,43 @@ public class RealmProxyClassGenerator {
         writer.endConstructor()
                 .emitEmptyLine();
 
+        // assuming the number of backlinks is small,
+        // so an "if" chain is a reasonable way of searching
+        Set<Backlink> backlinks = metadata.getBacklinkFields();
+        if (backlinks.size() > 0) {
+            // backlink source class method
+            writer.emitAnnotation("Override")
+                    .beginMethod(
+                            "Class<?>",                                   // return type
+                            "getBacklinkSourceClass",                     // method name
+                            EnumSet.of(Modifier.PUBLIC, Modifier.FINAL),  // modifiers
+                            "String", "columnName");                      // parameters
+            for (Backlink backlink : backlinks) {
+                writer.beginControlFlow("if (\"%s\".equals(columnName))", backlink.getTargetField())
+                        .emitStatement("return %s.class", backlink.getSourceClass())
+                        .endControlFlow();
+            }
+            writer.emitStatement("return null")
+                    .endMethod()
+                    .emitEmptyLine();
+
+            // backlink source field method
+            writer.emitAnnotation("Override")
+                    .beginMethod(
+                            "String",                                     // return type
+                            "getBacklinkSourceField",                     // method name
+                            EnumSet.of(Modifier.PUBLIC, Modifier.FINAL),  // modifiers
+                            "String", "columnName");                      // parameters
+            for (Backlink backlink : backlinks) {
+                writer.beginControlFlow("if (\"%s\".equals(columnName))", backlink.getTargetField())
+                        .emitStatement("return \"%s\"", backlink.getSourceField())
+                        .endControlFlow();
+            }
+            writer.emitStatement("return null")
+                    .endMethod()
+                    .emitEmptyLine();
+        }
+
         // no-args copy method
         writer.emitAnnotation("Override")
                 .beginMethod(
@@ -191,14 +228,13 @@ public class RealmProxyClassGenerator {
                         "copy",                                          // method name
                         EnumSet.of(Modifier.PROTECTED, Modifier.FINAL),  // modifiers
                         "ColumnInfo", "rawSrc", "ColumnInfo", "rawDst"); // parameters
-        {
-            writer.emitStatement("final %1$s src = (%1$s) rawSrc", columnInfoClassName());
-            writer.emitStatement("final %1$s dst = (%1$s) rawDst", columnInfoClassName());
-            for (VariableElement variableElement : metadata.getFields()) {
-                writer.emitStatement("dst.%1$s = src.%1$s", columnIndexVarName(variableElement));
-            }
+        writer.emitStatement("final %1$s src = (%1$s) rawSrc", columnInfoClassName());
+        writer.emitStatement("final %1$s dst = (%1$s) rawDst", columnInfoClassName());
+        for (VariableElement variableElement : metadata.getFields()) {
+            writer.emitStatement("dst.%1$s = src.%1$s", columnIndexVarName(variableElement));
         }
         writer.endMethod();
+
         writer.endType()
                 .emitEmptyLine();
     }
@@ -1130,9 +1166,9 @@ public class RealmProxyClassGenerator {
                 .endControlFlow();
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
-        writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
+        writer.emitStatement("long tableNativePtr = table.getNativePtr()");
         writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
-                columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
+                columnInfoClassName(), columnInfoClassName(),  qualifiedClassName);
 
         if (metadata.hasPrimaryKey()) {
             writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
@@ -1199,7 +1235,7 @@ public class RealmProxyClassGenerator {
         );
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
-        writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
+        writer.emitStatement("long tableNativePtr = table.getNativePtr()");
         writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
         if (metadata.hasPrimaryKey()) {
@@ -1285,7 +1321,7 @@ public class RealmProxyClassGenerator {
                 .endControlFlow();
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
-        writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
+        writer.emitStatement("long tableNativePtr = table.getNativePtr()");
         writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
 
@@ -1358,7 +1394,7 @@ public class RealmProxyClassGenerator {
         );
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", qualifiedClassName);
-        writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
+        writer.emitStatement("long tableNativePtr = table.getNativePtr()");
         writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
                 columnInfoClassName(), columnInfoClassName(), qualifiedClassName);
         if (metadata.hasPrimaryKey()) {

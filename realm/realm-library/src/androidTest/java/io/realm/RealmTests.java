@@ -824,8 +824,8 @@ public class RealmTests {
 
     // This test is slow. Move it to another testsuite that runs once a day on Jenkins.
     // The test writes and reads random Strings.
-    // @Test TODO AndroidJUnit4 runner doesn't seem to respect the @Ignore annotation?
-    @Ignore
+    @Test
+    @Ignore("Disabled?")
     public void unicodeStrings() {
         List<String> chars_array = getCharacterArray();
         // Change seed value for new random values.

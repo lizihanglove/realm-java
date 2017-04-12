@@ -408,7 +408,8 @@ public class Realm extends BaseRealm {
             schemaCreator = null;
 
             long newVersion = configuration.getSchemaVersion();
-            // !!! FIXME: This appalling kludge is necessitated by current package structure/visiblity constraints.
+            //FIXME!!! GBM
+            // This appalling kludge is necessitated by current package structure/visiblity constraints.
             // It absolutely breaks encapsulation and needs to be fixed!
             long schemaNativePointer = schema.getNativePtr();
             if (realm.sharedRealm.requiresMigration(schemaNativePointer)) {
@@ -895,7 +896,7 @@ public class Realm extends BaseRealm {
         // Checks and throws the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
             throw new RealmException(String.format("'%s' has a primary key, use" +
-                    " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
+                    " 'createObject(Class<E>, Object)' instead.", Table.getClassNameForTable(table)));
         }
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex, acceptDefaultValue, excludeFields);

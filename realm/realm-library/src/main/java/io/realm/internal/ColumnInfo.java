@@ -16,20 +16,30 @@
 
 package io.realm.internal;
 
-import android.support.annotation.VisibleForTesting;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 
 
 public abstract class ColumnInfo {
-    static class ColumnDetails {
-        long index;
+    private static final class ColumnDetails {
+        public final long columnIndex;
+        public final RealmFieldType columnType;
+        public final String srcTable;
 
-        boolean backlink;
+        public ColumnDetails(long columnIndex, RealmFieldType columnType) {
+            this(columnIndex, columnType, null);
+        }
+
+        public ColumnDetails(long columnIndex, RealmFieldType columnType, String srcTable) {
+            this.columnIndex = columnIndex;
+            this.columnType = columnType;
+            this.srcTable = srcTable;
+        }
     }
+
 
     private final Map<String, Long> indicesMap;
     private final boolean mutable;
@@ -94,6 +104,28 @@ public abstract class ColumnInfo {
     }
 
     /**
+     * Return the {@code Class} for the backlink, or null if none exists.
+     * Overridden by subclasses that have backlinks.
+     *
+     * @param name The backlink target field.
+     * @return the Class that contains the backlink source field
+     */
+    public Class<?> getBacklinkSourceClass(String name) {
+        return null;
+    }
+
+    /**
+     * Return the name of the backlink source field, or null if none exists.
+     * Overridden by subclasses that have backlinks.
+     *
+     * @param name The backlink target field.S
+     * @return the name of the backlink source field
+     */
+    public String getBacklinkSourceField(String name) {
+        return null;
+    }
+
+    /**
      * Create a new object that is an exact copy of {@code src}.
      *
      * @param mutable false to make an immutable copy.
@@ -138,7 +170,7 @@ public abstract class ColumnInfo {
      * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
      */
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
     public Map<String, Long> getIndicesMap() {
         return indicesMap;
     }

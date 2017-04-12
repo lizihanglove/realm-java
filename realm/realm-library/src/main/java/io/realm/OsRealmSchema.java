@@ -58,7 +58,7 @@ class OsRealmSchema extends RealmSchema {
         @Override
         public RealmObjectSchema create(String className) {
             checkEmpty(className);
-            OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(className);
+            OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(this, className);
             schema.put(className, realmObjectSchema);
             return realmObjectSchema;
         }
@@ -66,6 +66,11 @@ class OsRealmSchema extends RealmSchema {
         @Override
         public boolean contains(String className) {
             return schema.containsKey(className);
+        }
+
+        @Override
+        long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -103,10 +108,10 @@ class OsRealmSchema extends RealmSchema {
 
     private long nativePtr;
 
-    // FIXME:
+    //FIXME!!! GBM
     // Because making getAll return Set<? Extends RealmObjectSchema> is a breaking change
-    // Creator.getAll must return Set<RealmObjectSchema>.
-    // That means that necessitates the cast inside the loop.
+    // Creator.getAll must return Set<RealmObjectSchema> instead of Set<? extends RealmObjectSchema>
+    // That necessitates the cast inside the loop below.
     OsRealmSchema(Creator creator) {
         Set<RealmObjectSchema> realmObjectSchemas = creator.getAll();
         long[] schemaNativePointers = new long[realmObjectSchemas.size()];
@@ -162,7 +167,7 @@ class OsRealmSchema extends RealmSchema {
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
         checkEmpty(className);
-        OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(className);
+        OsRealmObjectSchema realmObjectSchema = new OsRealmObjectSchema(this, className);
         dynamicClassToSchema.put(className, realmObjectSchema);
         return realmObjectSchema;
     }
@@ -203,12 +208,22 @@ class OsRealmSchema extends RealmSchema {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * @inheritDoc
+     *
+     * Unimplemented.
+     */
+    @Override
+    long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     OsRealmObjectSchema getSchemaForClass(String className) {
         throw new UnsupportedOperationException();
     }
 
-    static void checkEmpty(String str) {
+    private static void checkEmpty(String str) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException("Null or empty class names are not allowed");
         }

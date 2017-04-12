@@ -592,6 +592,7 @@ public class LinkingObjectsManagedTests {
      * validate its table.  If we have been living clean lives, though, the validator for
      * `BacklinksMissingFieldTarget` should notice that there is no field named `BacklinksMissingFieldSource.xxxchild`.
      */
+    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceFieldDoesntExist() {
         final String realmName = "backlinks-missingSourceField.realm";
@@ -630,6 +631,7 @@ public class LinkingObjectsManagedTests {
      * for `BacklinksWrongTypeTarget` should notice, though, that its `parents` field points to an object
      * of the wrong type, `Integer`, instead of `BacklinksWrongTypeSource`.
      */
+    @Ignore("Need to rebuild the test library")
     @Test
     public void migration_backlinkedSourceFieldWrongType() {
         final String realmName = "backlinks-sourceFieldWrongType.realm";
@@ -681,7 +683,7 @@ public class LinkingObjectsManagedTests {
     //  /  = object ref
     //  // = list ref
     @Test
-    @Ignore
+    @Ignore("Backlinks in queries are not supported yet")
     public void query_startWithBacklink() {
         realm.beginTransaction();
         AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
@@ -716,7 +718,7 @@ public class LinkingObjectsManagedTests {
     //  /  = object ref
     //  // = list ref
     @Test
-    @Ignore
+    @Ignore("Backlinks in queries are not supported yet")
     public void query_endWithBacklink() {
         realm.beginTransaction();
         AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);
@@ -752,7 +754,7 @@ public class LinkingObjectsManagedTests {
     //  /  = object ref
     //  // = list ref
     @Test
-    @Ignore
+    @Ignore("Backlinks in queries are not supported yet")
     public void query_backlinkInMiddle() {
         realm.beginTransaction();
         AllJavaTypes gen1 = realm.createObject(AllJavaTypes.class, 10);

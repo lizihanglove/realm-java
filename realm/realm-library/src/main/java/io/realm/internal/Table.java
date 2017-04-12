@@ -45,12 +45,12 @@ public class Table implements TableSchema, NativeObject {
     }
 
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
-    public static final String TABLE_PREFIX = Util.getTablePrefix();
     public static final long INFINITE = -1;
     public static final boolean NULLABLE = true;
     public static final boolean NOT_NULLABLE = false;
     public static final int NO_MATCH = -1;
 
+    private static final String TABLE_PREFIX = Util.getTablePrefix();
     private static final String PRIMARY_KEY_TABLE_NAME = "pk";
     private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
     private static final long PRIMARY_KEY_CLASS_COLUMN_INDEX = 0;
@@ -58,9 +58,10 @@ public class Table implements TableSchema, NativeObject {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
 
-    private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    final Context context;
+
+    private final long nativePtr;
+    private final Context context;
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
@@ -104,10 +105,6 @@ public class Table implements TableSchema, NativeObject {
 
     public Table getTable() {
         return this;
-    }
-
-    public long getNativeTablePointer() {
-        return nativePtr;
     }
 
     /*
@@ -221,7 +218,7 @@ public class Table implements TableSchema, NativeObject {
         // Renames a primary key. At this point, renaming the column name should have been fine.
         if (oldPkColumnIndex == columnIndex) {
             try {
-                String className = tableNameToClassName(getName());
+                String className = getClassNameForTable(this);
                 Table pkTable = getPrimaryKeyTable();
                 if (pkTable == null) {
                     throw new IllegalStateException(
@@ -589,7 +586,7 @@ public class Table implements TableSchema, NativeObject {
                 return NO_PRIMARY_KEY; // Free table = No primary key.
             }
 
-            String className = tableNameToClassName(getName());
+            String className = getClassNameForTable(this);
             long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
             if (rowIndex != NO_MATCH) {
                 String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
@@ -1169,11 +1166,28 @@ public class Table implements TableSchema, NativeObject {
         return nativeVersion(nativePtr);
     }
 
-    public static String tableNameToClassName(String tableName) {
-        if (!tableName.startsWith(Table.TABLE_PREFIX)) {
-            return tableName;
+    public static String getClassNameForTable(Table table) {
+        return (table == null) ? null : getClassNameForTable(table.getName());
+    }
+
+    public static String getClassNameForTable(String name) {
+        if (name == null) { return null; }
+        if (!name.startsWith(TABLE_PREFIX)) {
+            return name;
         }
-        return tableName.substring(Table.TABLE_PREFIX.length());
+        return name.substring(TABLE_PREFIX.length());
+    }
+
+    public static String getTableNameForClass(Class<?> clazz) {
+        return (clazz == null) ? null : getTableNameForClass(clazz.getSimpleName());
+    }
+
+    public static String getTableNameForClass(String name) {
+        if (name == null) { return null; }
+        if (name.startsWith(TABLE_PREFIX)) {
+            return name;
+        }
+        return TABLE_PREFIX + name;
     }
 
     protected native long createNative();

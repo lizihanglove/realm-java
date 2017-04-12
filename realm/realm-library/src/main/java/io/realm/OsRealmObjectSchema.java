@@ -15,7 +15,6 @@
  */
 package io.realm;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import io.realm.internal.Table;
@@ -31,11 +30,12 @@ class OsRealmObjectSchema extends RealmObjectSchema {
      *
      * @param className name of the class
      */
-    OsRealmObjectSchema(String className) {
-        this.nativePtr = nativeCreateRealmObjectSchema(className);
+    OsRealmObjectSchema(RealmSchema schema, String className) {
+        this(schema, nativeCreateRealmObjectSchema(className));
     }
 
-    OsRealmObjectSchema(long nativePtr) {
+    private OsRealmObjectSchema(RealmSchema schema, long nativePtr) {
+        super(schema);
         this.nativePtr = nativePtr;
     }
 
@@ -163,11 +163,6 @@ class OsRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     OsRealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         final Property property = new Property(name, type, primary, indexed, required);
         try {
@@ -189,10 +184,6 @@ class OsRealmObjectSchema extends RealmObjectSchema {
         return this;
     }
 
-    long getNativePtr() {
-        return nativePtr;
-    }
-
     @Override
     Table getTable() {
         throw new UnsupportedOperationException();
@@ -203,15 +194,9 @@ class OsRealmObjectSchema extends RealmObjectSchema {
         throw new UnsupportedOperationException();
     }
 
-// FIXME!!
-//    private Set<Property> getProperties() {
-//        long[] ptrs = nativeGetProperties(nativePtr);
-//        Set<Property> properties = new LinkedHashSet<>(ptrs.length);
-//        for (int i = 0; i < ptrs.length; i++) {
-//            properties.add(new Property(ptrs[i]));
-//        }
-//        return properties;
-//    }
+    long getNativePtr() {
+        return nativePtr;
+    }
 
     static native long nativeCreateRealmObjectSchema(String className);
 

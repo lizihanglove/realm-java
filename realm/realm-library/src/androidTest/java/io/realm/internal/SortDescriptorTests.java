@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -122,20 +123,7 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForDistinct_shouldThrowOnInvalidField() {
-        List<RealmFieldType> types = new ArrayList<RealmFieldType>();
-        for (RealmFieldType type : RealmFieldType.values()) {
-            if (!SortDescriptor.validFieldTypesForDistinct.contains(type) &&
-                    type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE &&
-                    type != RealmFieldType.UNSUPPORTED_MIXED) {
-                if (type == RealmFieldType.LIST || type == RealmFieldType.OBJECT) {
-                    table.addColumnLink(type, type.name(), table);
-                } else {
-                    table.addColumn(type, type.name());
-                }
-                types.add(type);
-            }
-        }
+        List<RealmFieldType> types =  getValidFieldTypes(SortDescriptor.validFieldTypesForDistinct);
 
         for (RealmFieldType type : types) {
             try {
@@ -223,20 +211,7 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForSort_shouldThrowOnInvalidField() {
-        List<RealmFieldType> types = new ArrayList<RealmFieldType>();
-        for (RealmFieldType type : RealmFieldType.values()) {
-            if (!SortDescriptor.validFieldTypesForSort.contains(type) &&
-                    type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE&&
-                    type != RealmFieldType.UNSUPPORTED_MIXED) {
-                if (type == RealmFieldType.LIST || type == RealmFieldType.OBJECT) {
-                    table.addColumnLink(type, type.name(), table);
-                } else {
-                    table.addColumn(type, type.name());
-                }
-                types.add(type);
-            }
-        }
+        List<RealmFieldType> types = getValidFieldTypes(SortDescriptor.validFieldTypesForSort);
 
         for (RealmFieldType type : types) {
             try {
@@ -258,5 +233,25 @@ public class SortDescriptorTests {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("is not a supported link field");
         SortDescriptor.getInstanceForSort(table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
+    }
+
+    @NonNull
+    private List<RealmFieldType> getValidFieldTypes(List<RealmFieldType> filter) {
+        List<RealmFieldType> types = new ArrayList<>();
+        for (RealmFieldType type : RealmFieldType.values()) {
+            if (!filter.contains(type) &&
+                    type != RealmFieldType.BACKLINK && //FIXME!!! GBM
+                    type != RealmFieldType.UNSUPPORTED_DATE &&
+                    type != RealmFieldType.UNSUPPORTED_TABLE&&
+                    type != RealmFieldType.UNSUPPORTED_MIXED) {
+                if ((type != RealmFieldType.LIST) && (type != RealmFieldType.OBJECT)) {
+                    table.addColumn(type, type.name());
+                } else {
+                    table.addColumnLink(type, type.name(), table);
+                }
+                types.add(type);
+            }
+        }
+        return types;
     }
 }

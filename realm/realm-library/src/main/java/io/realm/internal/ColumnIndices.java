@@ -90,8 +90,8 @@ public final class ColumnIndices {
         for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
             final ColumnInfo otherColumnInfo = otherClasses.get(entry.getKey());
             if (otherColumnInfo == null) {
-                throw new IllegalStateException("Failed to copy ColumnIndices cache: "
-                        + Table.tableNameToClassName(mediator.getTableName(entry.getKey())));
+                throw new IllegalStateException("Failed to copy ColumnIndices cache for class: "
+                        + Table.getClassNameForTable(mediator.getTableName(entry.getKey())));
             }
             entry.getValue().copyFrom(otherColumnInfo);
         }

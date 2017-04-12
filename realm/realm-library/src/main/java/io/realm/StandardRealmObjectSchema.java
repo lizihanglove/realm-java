@@ -64,7 +64,6 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
     private final BaseRealm realm;
-    private final StandardRealmSchema schema;
     private final ColumnInfo columnInfo;
     private final Table table;
 
@@ -86,15 +85,10 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * @param columnInfo mapping between field names and column indexes for the given table
      */
     StandardRealmObjectSchema(BaseRealm realm, StandardRealmSchema schema, Table table, ColumnInfo columnInfo) {
+        super(schema);
         this.realm = realm;
-        this.schema = schema;
         this.table = table;
         this.columnInfo = columnInfo;
-    }
-
-    @Override
-    Table getTable() {
-        return table;
     }
 
     /**
@@ -115,7 +109,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      */
     @Override
     public String getClassName() {
-        return table.getName().substring(Table.TABLE_PREFIX.length());
+        return Table.getClassNameForTable(table);
     }
 
     /**
@@ -131,7 +125,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     public StandardRealmObjectSchema setClassName(String className) {
         realm.checkNotInSync(); // renaming a table is not permitted
         checkEmpty(className);
-        String internalTableName = Table.TABLE_PREFIX + className;
+        String internalTableName = Table.getTableNameForClass(className);
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
             throw new IllegalArgumentException("Class name is too long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
         }
@@ -216,7 +210,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     public StandardRealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
         return this;
     }
 
@@ -232,7 +226,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     public StandardRealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
         return this;
     }
 
@@ -562,6 +556,11 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
+    Table getTable() {
+        return table;
+    }
+
+    @Override
     StandardRealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
 
@@ -577,93 +576,8 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         table.addColumnLink(
                 type,
                 name,
-                realm.getSharedRealm().getTable(StandardRealmSchema.TABLE_PREFIX + linkedTo.getClassName()));
+                realm.getSharedRealm().getTable(Table.getTableNameForClass(linkedTo.getClassName())));
         return this;
-    }
-
-    /**
-     * Returns the column indices for the given field name. If a linked field is defined, the column index for
-     * each field is returned.
-     *
-     * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return list of column indices.
-     */
-    void linkFieldDescription(String fieldDescription, RealmFieldType... validColumnTypes) {
-        if (fieldDescription == null || fieldDescription.equals("")) {
-            throw new IllegalArgumentException("Invalid query: field name is empty");
-        }
-        if (fieldDescription.endsWith(".")) {
-            throw new IllegalArgumentException("Invalid query: field name must not end with a period ('.')");
-        }
-        String[] names = fieldDescription.split("\\.");
-
-        schema.linkFields(names);
-
-    }
-
-    /**
-     * Returns the column indices for the given field name. If a linked field is defined, the column index for
-     * each field is returned.
-     *
-     * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return list of column indices.
-     */
-    // TODO: consider another caching strategy so linked classes are included in the cache.
-    @Override
-    long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
-        if (fieldDescription == null || fieldDescription.equals("")) {
-            throw new IllegalArgumentException("Invalid query: field name is empty");
-        }
-        if (fieldDescription.endsWith(".")) {
-            throw new IllegalArgumentException("Invalid query: field name must not end with a period ('.')");
-        }
-        String[] names = fieldDescription.split("\\.");
-
-        long[] columnIndices = new long[names.length];
-        Table currentTable = table;
-        RealmFieldType columnType;
-        String columnName;
-        String tableName;
-        for (int i = 0; /* loop exits in the middle */ ; i++) {
-            columnName = names[i];
-            if (columnName.length() <= 0) {
-                throw new IllegalArgumentException(String.format(
-                        "Invalid query: empty column name in field '%s'.  " +
-                                "A field name must not begin with or contain adjacent periods ('.').",
-                        fieldDescription));
-            }
-
-            tableName = getTableName(currentTable);
-            long index = currentTable.getColumnIndex(columnName);
-            if (index < 0) {
-                throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' does not exist in table '%s'.",
-                                columnName, tableName));
-            }
-            columnIndices[i] = index;
-
-            columnType = currentTable.getColumnType(index);
-
-            if (i >= names.length - 1) { break; }
-
-            if ((columnType != RealmFieldType.OBJECT) && (columnType != RealmFieldType.LIST)) {
-                throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' in table '%s' is of type '%s'.  It must be a LIST or OBJECT type.",
-                                columnName, tableName, columnType.toString()));
-            }
-
-            currentTable = currentTable.getLinkTarget(index);
-        }
-
-        if ((validColumnTypes != null) && (validColumnTypes.length > 0) && !isValidType(columnType, validColumnTypes)) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
-                            columnName, tableName, columnType.toString()));
-        }
-
-        return columnIndices;
     }
 
     /**
@@ -690,10 +604,6 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
         return index;
-    }
-
-    private String getTableName(Table table) {
-        return table.getName().substring(StandardRealmSchema.TABLE_PREFIX.length());
     }
 
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
@@ -779,14 +689,6 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         }
     }
 
-    private boolean isValidType(RealmFieldType columnType, RealmFieldType[] validColumnTypes) {
-        for (int i = 0; i < validColumnTypes.length; i++) {
-            if (validColumnTypes[i] == columnType) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     static final class DynamicColumnIndices extends ColumnInfo {
         private final Table table;
@@ -799,6 +701,16 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         @Override
         public long getColumnIndex(String columnName) {
             return table.getColumnIndex(columnName);
+        }
+
+        @Override
+        public Class<?> getBacklinkSourceClass(String name) {
+            throw new UnsupportedOperationException("DynamicRealm does not support backlinks");
+        }
+
+        @Override
+        public String getBacklinkSourceField(String name) {
+            throw new UnsupportedOperationException("DynamicRealm does not support backlinks");
         }
 
         @Override
