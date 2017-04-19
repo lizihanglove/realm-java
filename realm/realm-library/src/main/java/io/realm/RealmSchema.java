@@ -36,7 +36,7 @@ import io.realm.internal.Table;
  * @see RealmMigration
  */
 public abstract class RealmSchema {
-    private ColumnIndices columnIndices; // Cached field look up
+    protected ColumnIndices columnIndices; // Cached field look up
 
     /**
      * Release the schema and any of native resources it might hold.
@@ -170,6 +170,12 @@ public abstract class RealmSchema {
         columnIndices.copyFrom(schemaVersion, mediator);
     }
 
+    /**
+     * Sometimes you need ColumnIndicies that can be passed between threads.
+     * Setting the mutable flag false creates an instance that is effectively final.
+     *
+     * @return a new, thread-safe copy of this Schema's ColumnIndices.
+     */
     final ColumnIndices getImmutableColumnIndicies() {
         checkIndices();
         return new ColumnIndices(columnIndices, false);

@@ -156,10 +156,15 @@ public class RealmProxyClassGenerator {
                 EnumSet.noneOf(Modifier.class),
                 "String", "path", "Table", "table");
         writer.emitStatement("super(%s)", metadata.getFields().size());
-        for (VariableElement variableElement : metadata.getFields()) {
+        for (VariableElement field : metadata.getFields()) {
             writer.emitStatement(
-                    "this.%1$sIndex = addColumnIndex(table, \"%1$s\", path, \"%2$s\")",
-                    variableElement.getSimpleName().toString(), simpleClassName);
+                    "this.%1$sIndex = addColumnDetails(path, table, \"%1$s\", %2$s)",
+                    field.getSimpleName().toString(), getRealmType(field).toString());
+        }
+        for (Backlink backlink : metadata.getBacklinkFields()) {
+            writer.emitStatement(
+                    "addColumnDetails(path, table, \"%1$s\", RealmFieldType.BACKLINK, \"%2$s\", \"%3$s\")",
+                    backlink.getTargetField(), backlink.getSourceClass(), backlink.getSourceField());
         }
         writer.endConstructor()
                 .emitEmptyLine();
@@ -172,43 +177,6 @@ public class RealmProxyClassGenerator {
                 .emitStatement("copy(src, this)");
         writer.endConstructor()
                 .emitEmptyLine();
-
-        // assuming the number of backlinks is small,
-        // so an "if" chain is a reasonable way of searching
-        Set<Backlink> backlinks = metadata.getBacklinkFields();
-        if (backlinks.size() > 0) {
-            // backlink source class method
-            writer.emitAnnotation("Override")
-                    .beginMethod(
-                            "Class<?>",                                   // return type
-                            "getBacklinkSourceClass",                     // method name
-                            EnumSet.of(Modifier.PUBLIC, Modifier.FINAL),  // modifiers
-                            "String", "columnName");                      // parameters
-            for (Backlink backlink : backlinks) {
-                writer.beginControlFlow("if (\"%s\".equals(columnName))", backlink.getTargetField())
-                        .emitStatement("return %s.class", backlink.getSourceClass())
-                        .endControlFlow();
-            }
-            writer.emitStatement("return null")
-                    .endMethod()
-                    .emitEmptyLine();
-
-            // backlink source field method
-            writer.emitAnnotation("Override")
-                    .beginMethod(
-                            "String",                                     // return type
-                            "getBacklinkSourceField",                     // method name
-                            EnumSet.of(Modifier.PUBLIC, Modifier.FINAL),  // modifiers
-                            "String", "columnName");                      // parameters
-            for (Backlink backlink : backlinks) {
-                writer.beginControlFlow("if (\"%s\".equals(columnName))", backlink.getTargetField())
-                        .emitStatement("return \"%s\"", backlink.getSourceField())
-                        .endControlFlow();
-            }
-            writer.emitStatement("return null")
-                    .endMethod()
-                    .emitEmptyLine();
-        }
 
         // no-args copy method
         writer.emitAnnotation("Override")
@@ -308,7 +276,8 @@ public class RealmProxyClassGenerator {
             final VariableElement field,
             final String fieldName,
             String fieldTypeCanonicalName) throws IOException {
-        final String realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
+
+       final String fieldJavaType = getRealmType(field).getJavaType();
 
         // Getter
         //@formatter:off
@@ -335,7 +304,7 @@ public class RealmProxyClassGenerator {
         }
         writer.emitStatement(
                 "return (%s) proxyState.getRow$realm().get%s(%s)",
-                castingBackType, realmType, fieldIndexVariableReference(field));
+                castingBackType, fieldJavaType, fieldIndexVariableReference(field));
         writer.endMethod()
                 .emitEmptyLine();
 
@@ -364,7 +333,7 @@ public class RealmProxyClassGenerator {
 
                 writer.emitStatement(
                         "row.getTable().set%s(%s, row.getIndex(), value, true)",
-                        realmType, fieldIndexVariableReference(field));
+                        fieldJavaType, fieldIndexVariableReference(field));
                 writer.emitStatement("return");
             }
         });
@@ -391,7 +360,7 @@ public class RealmProxyClassGenerator {
             //@formatter:on
             writer.emitStatement(
                     "proxyState.getRow$realm().set%s(%s, value)",
-                    realmType, fieldIndexVariableReference(field));
+                    fieldJavaType, fieldIndexVariableReference(field));
         }
         writer.endMethod();
     }
@@ -637,29 +606,39 @@ public class RealmProxyClassGenerator {
             String fieldTypeCanonicalName = field.asType().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
+            Constants.RealmFieldType fieldType = getRealmType(field);
+            switch (fieldType) {
+                case OBJECT:
+                    writer.beginControlFlow("if (!realmSchema.contains(\"" + fieldTypeSimpleName + "\"))")
+                            .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX)
+                            .endControlFlow()
+                            .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.OBJECT, realmSchema.get(\"%s\"))",
+                                    fieldName, fieldTypeSimpleName);
+                    break;
+
+                case LIST:
+                    String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
+                    writer.beginControlFlow("if (!realmSchema.contains(\"" + genericTypeSimpleName + "\"))")
+                            .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX)
+                            .endControlFlow()
+                            .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.LIST, realmSchema.get(\"%s\"))",
+                                    fieldName, genericTypeSimpleName);
+                    break;
+
+                default:
+                    String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
+                    String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
+                    String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
+                    writer.emitStatement("realmObjectSchema.add(\"%s\", %s, %s, %s, %s)",
+                            fieldName,
+                            fieldType.toString(),
+                            primaryKeyFlag,
+                            indexedFlag,
+                            nullableFlag);
+            }
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
-                String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
-                String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
-                String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
-                writer.emitStatement("realmObjectSchema.add(\"%s\", %s, %s, %s, %s)",
-                        fieldName,
-                        Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
-                        primaryKeyFlag,
-                        indexedFlag,
-                        nullableFlag);
             } else if (Utils.isRealmModel(field)) {
-                writer.beginControlFlow("if (!realmSchema.contains(\"" + fieldTypeSimpleName + "\"))")
-                        .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX)
-                        .endControlFlow()
-                        .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.OBJECT, realmSchema.get(\"%s\"))",
-                                fieldName, fieldTypeSimpleName);
             } else if (Utils.isRealmList(field)) {
-                String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                writer.beginControlFlow("if (!realmSchema.contains(\"" + genericTypeSimpleName + "\"))")
-                        .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX)
-                        .endControlFlow()
-                        .emitStatement("realmObjectSchema.add(\"%s\", RealmFieldType.LIST, realmSchema.get(\"%s\"))",
-                                fieldName, genericTypeSimpleName);
             }
         }
         writer.emitStatement("return realmObjectSchema");
@@ -782,7 +761,7 @@ public class RealmProxyClassGenerator {
                 "\")", fieldName);
         writer.endControlFlow();
         writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)",
-                fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeQualifiedName));
+                fieldName, getRealmType(field).toString());
         emitMigrationNeededException(writer, "\"Invalid type '%s' for field '%s' in existing Realm file.\")",
                 Utils.getFieldTypeSimpleName(field), fieldName);
         writer.endControlFlow();
@@ -2083,5 +2062,20 @@ public class RealmProxyClassGenerator {
             }
         }
         return count;
+    }
+
+    private Constants.RealmFieldType getRealmType(VariableElement field) {
+        String fieldTypeCanonicalName = field.asType().toString();
+        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
+        if (realmType != null) {
+            return realmType;
+        }
+        if (Utils.isRealmModel(field)) {
+            return Constants.RealmFieldType.OBJECT;
+        }
+        if (Utils.isRealmList(field)) {
+            return Constants.RealmFieldType.LIST;
+        }
+        throw new IllegalStateException("Unsupported type " + fieldTypeCanonicalName);
     }
 }

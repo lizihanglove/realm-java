@@ -37,8 +37,8 @@ public class SimpleRealmProxy extends some.test.Simple
 
         SimpleColumnInfo(String path, Table table) {
             super(2);
-            this.nameIndex = addColumnIndex(table, "name", path, "Simple");
-            this.ageIndex = addColumnIndex(table, "age", path, "Simple");
+            this.nameIndex = addColumnDetails(path, table, "name", RealmFieldType.STRING);
+            this.ageIndex = addColumnDetails(path, table, "age", RealmFieldType.INTEGER);
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {

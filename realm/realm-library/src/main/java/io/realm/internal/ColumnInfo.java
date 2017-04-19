@@ -24,35 +24,46 @@ import io.realm.exceptions.RealmMigrationNeededException;
 
 
 public abstract class ColumnInfo {
+
     private static final class ColumnDetails {
         public final long columnIndex;
         public final RealmFieldType columnType;
         public final String srcTable;
+        public final long srcColumn;
 
-        public ColumnDetails(long columnIndex, RealmFieldType columnType) {
-            this(columnIndex, columnType, null);
-        }
-
-        public ColumnDetails(long columnIndex, RealmFieldType columnType, String srcTable) {
+        public ColumnDetails(long columnIndex, RealmFieldType columnType, String srcTable, long srcColumn) {
             this.columnIndex = columnIndex;
             this.columnType = columnType;
             this.srcTable = srcTable;
+            this.srcColumn = srcColumn;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder buf = new StringBuilder("ColumnDetails[");
+            buf.append(columnIndex);
+            buf.append(", ").append(columnType);
+            if (srcTable != null) {
+                buf.append(", ").append(srcTable);
+                buf.append(", ").append(srcColumn);
+            }
+            return buf.append("]").toString();
         }
     }
 
 
-    private final Map<String, Long> indicesMap;
+    private final Map<String, ColumnDetails> indicesMap;
     private final boolean mutable;
 
     protected ColumnInfo(int mapSize) {
-        this(new HashMap<String, Long>(mapSize), true);
+        this(new HashMap<String, ColumnDetails>(mapSize), true);
     }
 
     protected ColumnInfo(ColumnInfo src, boolean mutable) {
         this((src == null) ? null : new HashMap<>(src.indicesMap), mutable);
     }
 
-    private ColumnInfo(HashMap<String, Long> indicesMap, boolean mutable) {
+    private ColumnInfo(HashMap<String, ColumnDetails> indicesMap, boolean mutable) {
         this.indicesMap = indicesMap;
         this.mutable = mutable;
     }
@@ -64,8 +75,23 @@ public abstract class ColumnInfo {
      * shared among other {@link ColumnInfo} instances.
      */
     public long getColumnIndex(String columnName) {
-        Long index = indicesMap.get(columnName);
-        return (index == null) ? -1 : index;
+        ColumnDetails details = indicesMap.get(columnName);
+        return (details == null) ? -1 : details.columnIndex;
+    }
+
+    public RealmFieldType getColumnType(String columnName) {
+        ColumnDetails details = indicesMap.get(columnName);
+        return (details == null) ? RealmFieldType.UNSUPPORTED_TABLE : details.columnType;
+    }
+
+    public String getSourceTable(String columnName) {
+        ColumnDetails details = indicesMap.get(columnName);
+        return (details == null) ? null : details.srcTable;
+    }
+
+    public long getSourceColumnIndex(String columnName) {
+        ColumnDetails details = indicesMap.get(columnName);
+        return (details == null) ? -1 : details.srcColumn;
     }
 
     /**
@@ -75,7 +101,7 @@ public abstract class ColumnInfo {
      * {@code src} must not be {@code null}.
      * @throws IllegalArgumentException if {@code other} has different class than this.
      */
-    public void copyFrom(ColumnInfo src) {
+    public final void copyFrom(ColumnInfo src) {
         if (!mutable) {
             throw new UnsupportedOperationException("Attempt to modify immutable cache");
         }
@@ -84,7 +110,7 @@ public abstract class ColumnInfo {
         }
 
         indicesMap.clear();
-        indicesMap.putAll(src.indicesMap);
+        indicesMap.putAll(src.indicesMap);  // ColumnDetails are immutable: no need to copy
         copy(src, this);
     }
 
@@ -94,35 +120,13 @@ public abstract class ColumnInfo {
         buf.append(mutable).append(",");
         if (indicesMap != null) {
             boolean commaNeeded = false;
-            for (Map.Entry<String, Long> entry : indicesMap.entrySet()) {
+            for (Map.Entry<String, ColumnDetails> entry : indicesMap.entrySet()) {
                 if (commaNeeded) { buf.append(","); }
                 buf.append(entry.getKey()).append("->").append(entry.getValue());
                 commaNeeded = true;
             }
         }
         return buf.append("]").toString();
-    }
-
-    /**
-     * Return the {@code Class} for the backlink, or null if none exists.
-     * Overridden by subclasses that have backlinks.
-     *
-     * @param name The backlink target field.
-     * @return the Class that contains the backlink source field
-     */
-    public Class<?> getBacklinkSourceClass(String name) {
-        return null;
-    }
-
-    /**
-     * Return the name of the backlink source field, or null if none exists.
-     * Overridden by subclasses that have backlinks.
-     *
-     * @param name The backlink target field.S
-     * @return the name of the backlink source field
-     */
-    public String getBacklinkSourceField(String name) {
-        return null;
     }
 
     /**
@@ -143,22 +147,49 @@ public abstract class ColumnInfo {
 
     /**
      * Add a new column to the indexMap.
-     * <b>For use only by subclasses!</b>.  Called from proxy constructors.
+     * <b>For use only by subclasses!</b>.
+     * Must be called from within constructor, to keep effectively-final contract.
      *
+     * @param realmPath Realm path, for the error message.
      * @param table The table to search for the column.
      * @param columnName The name of the column whose index is sought.
-     * @param realmPath Realm path, for the error message.
-     * @param className Class name, for the error message.
+     * @param columnType Type for the column.
      */
-    protected final long addColumnIndex(Table table, String columnName, String realmPath, String className) {
+    @SuppressWarnings("unused")
+    protected final long addColumnDetails(String realmPath, Table table, String columnName, RealmFieldType columnType) {
+        return addColumnDetails(realmPath, table, columnName, columnType, null, null);
+    }
+
+    /**
+     * Add a new backlinked column to the indexMap.
+     * <b>For use only by subclasses!</b>
+     * Must be called from within constructor, to keep effectively-final contract.
+     *
+     * @param realmPath Realm path, for the error message.
+     * @param table The table to search for the column.
+     * @param columnName The name of the column whose index is sought.
+     * @param columnType Type for the column.
+     * @param srcTableName The name of the backlink source table.
+     * @param srcColumnName Name of the backlink source column.
+     */
+    @SuppressWarnings("unused")
+    protected final long addColumnDetails(String realmPath, Table table, String columnName, RealmFieldType columnType, String srcTableName, String srcColumnName) {
         final long columnIndex = table.getColumnIndex(columnName);
         if (columnIndex < 0) {
             throw new RealmMigrationNeededException(
                     realmPath,
-                    "Field '" + columnName + "' not found for type " + className);
+                    "Field '" + columnName + "' not found for type " + Table.getClassNameForTable(table.getName()));
+        }
+        RealmFieldType actualColumnType = table.getColumnType(columnIndex);
+        if (actualColumnType != columnType) {
+            throw new RealmMigrationNeededException(
+                    realmPath,
+                    "Field '" + columnName + "': expected type " + columnType + "but found " + actualColumnType);
         }
 
-        indicesMap.put(columnName, columnIndex);
+        long srcColumnIndex = 0L;
+
+        indicesMap.put(columnName, new ColumnDetails(columnIndex, columnType, srcTableName, srcColumnIndex));
 
         return columnIndex;
     }
@@ -169,9 +200,9 @@ public abstract class ColumnInfo {
      *
      * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
      */
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    @SuppressWarnings({"ReturnOfCollectionOrArrayField", "unused"})
     //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    public Map<String, Long> getIndicesMap() {
+    public Map<String, ColumnDetails> getIndicesMap() {
         return indicesMap;
     }
 }

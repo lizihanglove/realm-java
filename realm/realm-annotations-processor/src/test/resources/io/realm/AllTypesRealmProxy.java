@@ -16,6 +16,8 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
+import io.realm.processor.Constants;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,15 +46,16 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         AllTypesColumnInfo(String path, Table table) {
             super(9);
-            this.columnStringIndex = addColumnIndex(table, "columnString", path, "AllTypes");
-            this.columnLongIndex = addColumnIndex(table, "columnLong", path, "AllTypes");
-            this.columnFloatIndex = addColumnIndex(table, "columnFloat", path, "AllTypes");
-            this.columnDoubleIndex = addColumnIndex(table, "columnDouble", path, "AllTypes");
-            this.columnBooleanIndex = addColumnIndex(table, "columnBoolean", path, "AllTypes");
-            this.columnDateIndex = addColumnIndex(table, "columnDate", path, "AllTypes");
-            this.columnBinaryIndex = addColumnIndex(table, "columnBinary", path, "AllTypes");
-            this.columnObjectIndex = addColumnIndex(table, "columnObject", path, "AllTypes");
-            this.columnRealmListIndex = addColumnIndex(table, "columnRealmList", path, "AllTypes");
+            this.columnStringIndex = addColumnDetails(path, table, "columnString", RealmFieldType.STRING);
+            this.columnLongIndex = addColumnDetails(path, table, "columnLong", RealmFieldType.INTEGER);
+            this.columnFloatIndex = addColumnDetails(path, table, "columnFloat", RealmFieldType.FLOAT);
+            this.columnDoubleIndex = addColumnDetails(path, table, "columnDouble", RealmFieldType.DOUBLE);
+            this.columnBooleanIndex = addColumnDetails(path, table, "columnBoolean", RealmFieldType.BOOLEAN);
+            this.columnDateIndex = addColumnDetails(path, table, "columnDate", path, RealmFieldType.DATE);
+            this.columnBinaryIndex = addColumnDetails(path, table, "columnBinary", RealmFieldType.BINARY);
+            this.columnObjectIndex = addColumnDetails(path, table, "columnObject", RealmFieldType.OBJECT);
+            this.columnRealmListIndex = addColumnDetails(path, table, "columnRealmList", RealmFieldType.LIST);
+            addColumnDetails(path, table, "parentObjects", RealmFieldType.BACKLINK, "AllTypes", "columnObject");
         }
 
         AllTypesColumnInfo(ColumnInfo src, boolean mutable) {

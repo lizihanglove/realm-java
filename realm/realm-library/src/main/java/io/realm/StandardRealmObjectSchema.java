@@ -690,10 +690,10 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
 
-    static final class DynamicColumnIndices extends ColumnInfo {
+    private static final class DynamicColumnIndices extends ColumnInfo {
         private final Table table;
 
-        DynamicColumnIndices(Table table) {
+        public DynamicColumnIndices(Table table) {
             super(null, false);
             this.table = table;
         }
@@ -701,16 +701,6 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         @Override
         public long getColumnIndex(String columnName) {
             return table.getColumnIndex(columnName);
-        }
-
-        @Override
-        public Class<?> getBacklinkSourceClass(String name) {
-            throw new UnsupportedOperationException("DynamicRealm does not support backlinks");
-        }
-
-        @Override
-        public String getBacklinkSourceField(String name) {
-            throw new UnsupportedOperationException("DynamicRealm does not support backlinks");
         }
 
         @Override

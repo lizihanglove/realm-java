@@ -27,6 +27,7 @@ import io.realm.RealmModel;
  */
 public final class ColumnIndices {
     private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
+    private final Map<String, ColumnInfo> classesByName;
     private final boolean mutable;
     private long schemaVersion;
 
@@ -45,6 +46,10 @@ public final class ColumnIndices {
         this.schemaVersion = schemaVersion;
         this.classes = classes;
         this.mutable = mutable;
+        this.classesByName = new HashMap<>(classes.size());
+        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
+            this.classesByName.put(entry.getKey().getSimpleName(), entry.getValue());
+        }
     }
 
     /**
@@ -57,13 +62,23 @@ public final class ColumnIndices {
     }
 
     /**
-     * Returns the {@link ColumnInfo} for the passed class ({@code null} if there is no such class).
+     * Returns the {@link ColumnInfo} for the passed class or ({@code null} if there is no such class).
      *
      * @param clazz the class for which to get the ColumnInfo.
      * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
      */
     public ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
         return classes.get(clazz);
+    }
+
+    /**
+     * Returns the {@link ColumnInfo} for the passed class ({@code null} if there is no such class).
+     *
+     * @param className the simple name of the class for which to get the ColumnInfo.
+     * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
+     */
+    public ColumnInfo getColumnInfo(String className) {
+        return classesByName.get(className);
     }
 
     /**
@@ -74,6 +89,7 @@ public final class ColumnIndices {
      * @param fieldName the name of the field whose index is needed.
      * @return the index in clazz of the field fieldName.
      */
+    @Deprecated
     public long getColumnIndex(Class<? extends RealmModel> clazz, String fieldName) {
         final ColumnInfo columnInfo = getColumnInfo(clazz);
         if (columnInfo == null) {
@@ -86,9 +102,8 @@ public final class ColumnIndices {
         if (!mutable) {
             throw new UnsupportedOperationException("Attempt to modify immutable cache");
         }
-        Map<Class<? extends RealmModel>, ColumnInfo> otherClasses = other.classes;
         for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
-            final ColumnInfo otherColumnInfo = otherClasses.get(entry.getKey());
+            final ColumnInfo otherColumnInfo = other.classes.get(entry.getKey());
             if (otherColumnInfo == null) {
                 throw new IllegalStateException("Failed to copy ColumnIndices cache for class: "
                         + Table.getClassNameForTable(mediator.getTableName(entry.getKey())));

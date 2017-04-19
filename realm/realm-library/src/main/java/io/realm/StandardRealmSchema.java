@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.NativeObject;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
@@ -89,7 +90,7 @@ class StandardRealmSchema extends RealmSchema {
             if (!Table.isModelTable(tableName)) {
                 continue;
             }
-            schemas.add(new StandardRealmObjectSchema(realm,  this, realm.getSharedRealm().getTable(tableName)));
+            schemas.add(new StandardRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName)));
         }
         return schemas;
     }
@@ -271,51 +272,66 @@ class StandardRealmSchema extends RealmSchema {
 
     /**
      * @inheritDoc
-     *
-     *
      */
-    // TODO: consider another caching strategy so linked classes are included in the cache.
     @Override
     long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes) {
         List<String> fields = parseFieldDescription(fieldDescription);
         int nFields = fields.size();
+        if (nFields <= 0) {
+            throw new IllegalArgumentException("Empty field description");
+        }
 
         long[][] columnInfo = new long[2][];
         columnInfo[0] = new long[nFields];
         columnInfo[1] = new long[nFields];
-        Table currentTable = table;
-        RealmFieldType columnType;
+
+        String tableName = Table.getClassNameForTable(table);
+
         String columnName;
-        String tableName;
-        for (int i = 0; /* loop exits in the middle */ ; i++) {
+        ColumnInfo tableInfo;
+        String targetTable;
+        RealmFieldType columnType;
+        LOOP:
+        for (int i = 0; /* loop exits in middle */ ; i++) {
             columnName = fields.get(i);
-            if (columnName.length() <= 0) {
+            if ((columnName == null) || (columnName.length() <= 0)) {
                 throw new IllegalArgumentException(String.format(
                         "Invalid query: empty column name in field '%s'.  A field name must not begin with or contain adjacent periods ('.').",
                         fieldDescription));
             }
 
-            tableName = Table.getClassNameForTable(currentTable.getName());
-            long index = currentTable.getColumnIndex(columnName);
-            if (index < 0) {
+            tableInfo = getColumnInfo(tableName);
+            long columnIndex = tableInfo.getColumnIndex(columnName);
+            if (columnIndex < 0) {
                 throw new IllegalArgumentException(
                         String.format("Invalid query: field '%s' does not exist in table '%s'.",
                                 columnName, tableName));
             }
-            columnInfo[0][i] = index;
-            columnInfo[1][i] = NativeObject.NULLPTR;
 
-            columnType = currentTable.getColumnType(index);
+            targetTable = tableInfo.getSourceTable(columnName);
+            columnType = tableInfo.getColumnType(columnName);
+            switch (columnType) {
+                case BACKLINK:
+                    columnInfo[0][i] = tableInfo.getSourceColumnIndex(columnName);
+                    columnInfo[1][i] = getNativeTablePtr(targetTable);
+                    break;
 
-            if (i >= nFields - 1) { break; }
+                case OBJECT:
+                case LIST:
+                    columnInfo[0][i] = columnIndex;
+                    columnInfo[1][i] = NativeObject.NULLPTR;
+                    break;
 
-            if ((columnType != RealmFieldType.OBJECT) && (columnType != RealmFieldType.LIST)) {
-                throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' in table '%s' is of type '%s'.  It must be a LIST or OBJECT type.",
-                                columnName, tableName, columnType.toString()));
+                default:
+                    columnInfo[0][i] = columnIndex;
+                    columnInfo[1][i] = NativeObject.NULLPTR;
+                    if (i >= nFields - 1) { break LOOP; }
+                    throw new IllegalArgumentException(
+                            String.format("Invalid query: field '%s' in table '%s' is of type '%s'.  It must be a LIST or an OBJECT.",
+                                    columnName, tableName, columnType.toString()));
             }
 
-            currentTable = currentTable.getLinkTarget(index);
+            tableName = targetTable;
         }
 
         if (!isValidType(columnType, validColumnTypes)) {
@@ -339,5 +355,13 @@ class StandardRealmSchema extends RealmSchema {
         }
 
         return false;
+    }
+
+    private ColumnInfo getColumnInfo(String tableName) {
+        return columnIndices.getColumnInfo(tableName);
+    }
+
+    private long getNativeTablePtr(String targetTable) {
+        return getTable(targetTable).getNativePtr();
     }
 }

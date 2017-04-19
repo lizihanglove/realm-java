@@ -16,6 +16,8 @@
 
 package io.realm.processor;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,73 +39,81 @@ public class Constants {
     static final String STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD =
             "throw new io.realm.exceptions.RealmException(\"\\\"%s\\\" field \\\"%s\\\" cannot be loaded from json\")";
 
-    static final Map<String, String> JAVA_TO_REALM_TYPES;
 
-    static {
-        JAVA_TO_REALM_TYPES = new HashMap<String, String>();
-        JAVA_TO_REALM_TYPES.put("byte", "Long");
-        JAVA_TO_REALM_TYPES.put("short", "Long");
-        JAVA_TO_REALM_TYPES.put("int", "Long");
-        JAVA_TO_REALM_TYPES.put("long", "Long");
-        JAVA_TO_REALM_TYPES.put("float", "Float");
-        JAVA_TO_REALM_TYPES.put("double", "Double");
-        JAVA_TO_REALM_TYPES.put("boolean", "Boolean");
-        JAVA_TO_REALM_TYPES.put("java.lang.Byte", "Long");
-        JAVA_TO_REALM_TYPES.put("java.lang.Short", "Long");
-        JAVA_TO_REALM_TYPES.put("java.lang.Integer", "Long");
-        JAVA_TO_REALM_TYPES.put("java.lang.Long", "Long");
-        JAVA_TO_REALM_TYPES.put("java.lang.Float", "Float");
-        JAVA_TO_REALM_TYPES.put("java.lang.Double", "Double");
-        JAVA_TO_REALM_TYPES.put("java.lang.Boolean", "Boolean");
-        JAVA_TO_REALM_TYPES.put("java.lang.String", "String");
-        JAVA_TO_REALM_TYPES.put("java.util.Date", "Date");
-        JAVA_TO_REALM_TYPES.put("byte[]", "BinaryByteArray");
-        // TODO: add support for char and Char
+    public enum RealmFieldType {
+        INTEGER("Long"),
+        FLOAT("Float"),
+        DOUBLE("Double"),
+        BOOLEAN("Boolean"),
+        STRING("String"),
+        DATE("Date"),
+        BINARY("BinaryByteArray"),
+        OBJECT(null),
+        LIST(null),
+        BACKLINK(null);
+
+        private final String javaType;
+        RealmFieldType(String javaType) {
+            this.javaType = javaType;
+        }
+
+        public String getJavaType() {
+            return javaType;
+        }
+
+        @Override
+        public String toString() {
+            return "RealmFieldType." + super.toString();
+        }
     }
 
-    static final Map<String, String> JAVA_TO_COLUMN_TYPES;
+
+    static final Map<String, RealmFieldType> JAVA_TO_REALM_TYPES;
 
     static {
-        JAVA_TO_COLUMN_TYPES = new HashMap<String, String>();
-        JAVA_TO_COLUMN_TYPES.put("byte", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("short", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("int", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("long", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("float", "RealmFieldType.FLOAT");
-        JAVA_TO_COLUMN_TYPES.put("double", "RealmFieldType.DOUBLE");
-        JAVA_TO_COLUMN_TYPES.put("boolean", "RealmFieldType.BOOLEAN");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.Byte", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.Short", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.Integer", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.Long", "RealmFieldType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.Float", "RealmFieldType.FLOAT");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.Double", "RealmFieldType.DOUBLE");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.Boolean", "RealmFieldType.BOOLEAN");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.String", "RealmFieldType.STRING");
-        JAVA_TO_COLUMN_TYPES.put("java.util.Date", "RealmFieldType.DATE");
-        JAVA_TO_COLUMN_TYPES.put("byte[]", "RealmFieldType.BINARY");
+        Map<String, RealmFieldType> m  = new HashMap<String, RealmFieldType>();
+        m.put("byte", RealmFieldType.INTEGER);
+        m.put("short", RealmFieldType.INTEGER);
+        m.put("int", RealmFieldType.INTEGER);
+        m.put("long", RealmFieldType.INTEGER);
+        m.put("float", RealmFieldType.FLOAT);
+        m.put("double", RealmFieldType.DOUBLE);
+        m.put("boolean", RealmFieldType.BOOLEAN);
+        m.put("java.lang.Byte", RealmFieldType.INTEGER);
+        m.put("java.lang.Short", RealmFieldType.INTEGER);
+        m.put("java.lang.Integer", RealmFieldType.INTEGER);
+        m.put("java.lang.Long", RealmFieldType.INTEGER);
+        m.put("java.lang.Float", RealmFieldType.FLOAT);
+        m.put("java.lang.Double", RealmFieldType.DOUBLE);
+        m.put("java.lang.Boolean", RealmFieldType.BOOLEAN);
+        m.put("java.lang.String", RealmFieldType.STRING);
+        m.put("java.util.Date", RealmFieldType.DATE);
+        m.put("byte[]", RealmFieldType.BINARY);
+        // TODO: add support for char and Char
+        JAVA_TO_REALM_TYPES = Collections.unmodifiableMap(m);
     }
 
     static final Map<String, String> JAVA_TO_FIELD_SETTER;
 
     static {
-        JAVA_TO_FIELD_SETTER = new HashMap<String, String>();
-        JAVA_TO_FIELD_SETTER.put("byte", "setByte");
-        JAVA_TO_FIELD_SETTER.put("short", "setShort");
-        JAVA_TO_FIELD_SETTER.put("int", "setInt");
-        JAVA_TO_FIELD_SETTER.put("long", "setLong");
-        JAVA_TO_FIELD_SETTER.put("float", "setFloat");
-        JAVA_TO_FIELD_SETTER.put("double", "setDouble");
-        JAVA_TO_FIELD_SETTER.put("boolean", "setBoolean");
-        JAVA_TO_FIELD_SETTER.put("java.lang.Byte", "set");
-        JAVA_TO_FIELD_SETTER.put("java.lang.Short", "set");
-        JAVA_TO_FIELD_SETTER.put("java.lang.Integer", "set");
-        JAVA_TO_FIELD_SETTER.put("java.lang.Long", "set");
-        JAVA_TO_FIELD_SETTER.put("java.lang.Float", "set");
-        JAVA_TO_FIELD_SETTER.put("java.lang.Double", "set");
-        JAVA_TO_FIELD_SETTER.put("java.lang.Boolean", "set");
-        JAVA_TO_FIELD_SETTER.put("java.lang.String", "set");
-        JAVA_TO_FIELD_SETTER.put("java.util.Date", "set");
-        JAVA_TO_FIELD_SETTER.put("byte[]", "set");
+        Map<String, String> m  = new HashMap<String, String>();
+        m.put("byte", "setByte");
+        m.put("short", "setShort");
+        m.put("int", "setInt");
+        m.put("long", "setLong");
+        m.put("float", "setFloat");
+        m.put("double", "setDouble");
+        m.put("boolean", "setBoolean");
+        m.put("java.lang.Byte", "set");
+        m.put("java.lang.Short", "set");
+        m.put("java.lang.Integer", "set");
+        m.put("java.lang.Long", "set");
+        m.put("java.lang.Float", "set");
+        m.put("java.lang.Double", "set");
+        m.put("java.lang.Boolean", "set");
+        m.put("java.lang.String", "set");
+        m.put("java.util.Date", "set");
+        m.put("byte[]", "set");
+        JAVA_TO_FIELD_SETTER = Collections.unmodifiableMap(m);
     }
 }

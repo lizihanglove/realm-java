@@ -44,6 +44,8 @@ import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
+import static io.realm.processor.Constants.RealmFieldType.STRING;
+
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -404,20 +406,20 @@ public class ClassMetaData {
     private boolean categorizeIndexField(Element element, VariableElement variableElement) {
         // The field has the @Index annotation. It's only valid for column types:
         // STRING, DATE, INTEGER, BOOLEAN
-        String elementTypeCanonicalName = variableElement.asType().toString();
-        String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
-        if (columnType != null &&
-                (columnType.equals("RealmFieldType.STRING") ||
-                        columnType.equals("RealmFieldType.DATE") ||
-                        columnType.equals("RealmFieldType.INTEGER") ||
-                        columnType.equals("RealmFieldType.BOOLEAN"))) {
-            indexedFields.add(variableElement);
-        } else {
-            Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
-            return false;
+        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(variableElement.asType().toString());
+        if (realmType != null) {
+            switch (realmType) {
+                case STRING:
+                case DATE:
+                case INTEGER:
+                case BOOLEAN:
+                    indexedFields.add(variableElement);
+                    return true;
+            }
         }
 
-        return true;
+        Utils.error(String.format("Field \"%s\" of type \"%s\" cannot be an @Index.", element, element.asType()));
+        return false;
     }
 
     // The field has the @Required annotation

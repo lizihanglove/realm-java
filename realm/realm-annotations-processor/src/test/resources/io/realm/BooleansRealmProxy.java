@@ -39,10 +39,10 @@ public class BooleansRealmProxy extends some.test.Booleans
 
         BooleansColumnInfo(String path, Table table) {
             super(4);
-            this.doneIndex = addColumnIndex(table, "done", path, "Booleans");
-            this.isReadyIndex = addColumnIndex(table, "isReady", path, "Booleans");
-            this.mCompletedIndex = addColumnIndex(table, "mCompleted", path, "Booleans");
-            this.anotherBooleanIndex = addColumnIndex(table, "anotherBoolean", path, "Booleans");
+            this.doneIndex = addColumnDetails(path, table, "done", RealmFieldType.BOOLEAN);
+            this.isReadyIndex = addColumnDetails(path, table, "isReady", RealmFieldType.BOOLEAN);
+            this.mCompletedIndex = addColumnDetails(path, table, "mCompleted", RealmFieldType.BOOLEAN);
+            this.anotherBooleanIndex = addColumnDetails(path, table, "anotherBoolean", RealmFieldType.BOOLEAN);
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {

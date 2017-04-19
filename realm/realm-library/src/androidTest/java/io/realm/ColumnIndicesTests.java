@@ -83,17 +83,19 @@ public class ColumnIndicesTests {
 
         final ColumnIndices columnIndices = create(schemaVersion);
         final ColumnIndices deepCopy = new ColumnIndices(columnIndices, true);
+        assertNotSame(columnIndices, deepCopy);
 
         assertEquals(schemaVersion, deepCopy.getSchemaVersion());
-        assertEquals(columnIndices.getColumnIndex(Cat.class, Cat.FIELD_NAME),
-                deepCopy.getColumnIndex(Cat.class, Cat.FIELD_NAME));
-        assertEquals(columnIndices.getColumnIndex(Dog.class, Dog.FIELD_AGE),
-                deepCopy.getColumnIndex(Dog.class, Dog.FIELD_AGE));
 
-        // Checks if those are different instance.
-        assertNotSame(columnIndices, deepCopy);
-        assertNotSame(columnIndices.getColumnInfo(Cat.class), deepCopy.getColumnInfo(Cat.class));
-        assertNotSame(columnIndices.getColumnInfo(Dog.class), deepCopy.getColumnInfo(Dog.class));
+        ColumnInfo colInfo = columnIndices.getColumnInfo(Cat.class);
+        ColumnInfo colInfoCopy = deepCopy.getColumnInfo(Cat.class);
+        assertNotSame(colInfo, colInfoCopy);
+        assertEquals(colInfo.getColumnIndex(Cat.FIELD_NAME), colInfoCopy.getColumnIndex(Cat.FIELD_NAME));
+
+        colInfo = columnIndices.getColumnInfo(Dog.class);
+        colInfoCopy = deepCopy.getColumnInfo(Dog.class);
+        assertNotSame(colInfo, colInfoCopy);
+        assertEquals(colInfo.getColumnIndex(Dog.FIELD_AGE), colInfoCopy.getColumnIndex(Dog.FIELD_AGE));
     }
 
     @Test
