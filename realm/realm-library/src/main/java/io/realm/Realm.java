@@ -1698,7 +1698,7 @@ public class Realm extends BaseRealm {
                     map.put(clazz, columnInfo);
                 }
             } catch (RealmMigrationNeededException e) {
-                throw e;
+                throw e; // WTF??
             }
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);

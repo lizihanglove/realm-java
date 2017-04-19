@@ -37,12 +37,12 @@ public class BooleansRealmProxy extends some.test.Booleans
         long mCompletedIndex;
         long anotherBooleanIndex;
 
-        BooleansColumnInfo(String path, Table table) {
+        BooleansColumnInfo(SharedRealm realm, Table table) {
             super(4);
-            this.doneIndex = addColumnDetails(path, table, "done", RealmFieldType.BOOLEAN);
-            this.isReadyIndex = addColumnDetails(path, table, "isReady", RealmFieldType.BOOLEAN);
-            this.mCompletedIndex = addColumnDetails(path, table, "mCompleted", RealmFieldType.BOOLEAN);
-            this.anotherBooleanIndex = addColumnDetails(path, table, "anotherBoolean", RealmFieldType.BOOLEAN);
+            this.doneIndex = addColumnDetails(realm, table, "done", RealmFieldType.BOOLEAN);
+            this.isReadyIndex = addColumnDetails(realm, table, "isReady", RealmFieldType.BOOLEAN);
+            this.mCompletedIndex = addColumnDetails(realm, table, "mCompleted", RealmFieldType.BOOLEAN);
+            this.anotherBooleanIndex = addColumnDetails(realm, table, "anotherBoolean", RealmFieldType.BOOLEAN);
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {
@@ -217,7 +217,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             columnTypes.put(table.getColumnName(i), table.getColumnType(i));
         }
 
-        final BooleansColumnInfo columnInfo = new BooleansColumnInfo(sharedRealm.getPath(), table);
+        final BooleansColumnInfo columnInfo = new BooleansColumnInfo(sharedRealm, table);
 
         if (table.hasPrimaryKey()) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
@@ -390,7 +390,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.Booleans.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -403,7 +403,7 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Booleans.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
         some.test.Booleans object = null;
         while (objects.hasNext()) {
@@ -428,7 +428,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.Booleans.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -441,7 +441,7 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Booleans.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
         some.test.Booleans object = null;
         while (objects.hasNext()) {

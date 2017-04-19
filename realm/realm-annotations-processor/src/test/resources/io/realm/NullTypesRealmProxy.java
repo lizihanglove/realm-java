@@ -54,29 +54,29 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         long fieldDateNullIndex;
         long fieldObjectNullIndex;
 
-        NullTypesColumnInfo(String path, Table table) {
+        NullTypesColumnInfo(SharedRealm realm, Table table) {
             super(21);
-            this.fieldStringNotNullIndex = addColumnDetails(path, table, "fieldStringNotNull", RealmFieldType.STRING);
-            this.fieldStringNullIndex = addColumnDetails(path, table, "fieldStringNull", RealmFieldType.STRING);
-            this.fieldBooleanNotNullIndex = addColumnDetails(path, table, "fieldBooleanNotNull", RealmFieldType.BOOLEAN);
-            this.fieldBooleanNullIndex = addColumnDetails(path, table, "fieldBooleanNull", RealmFieldType.BOOLEAN);
-            this.fieldBytesNotNullIndex = addColumnDetails(path, table, "fieldBytesNotNull", RealmFieldType.BINARY);
-            this.fieldBytesNullIndex = addColumnDetails(path, table, "fieldBytesNull", RealmFieldType.BINARY);
-            this.fieldByteNotNullIndex = addColumnDetails(path, table, "fieldByteNotNull", RealmFieldType.INTEGER);
-            this.fieldByteNullIndex = addColumnDetails(path, table, "fieldByteNull", RealmFieldType.INTEGER);
-            this.fieldShortNotNullIndex = addColumnDetails(path, table, "fieldShortNotNull", RealmFieldType.INTEGER);
-            this.fieldShortNullIndex = addColumnDetails(path, table, "fieldShortNull", RealmFieldType.INTEGER);
-            this.fieldIntegerNotNullIndex = addColumnDetails(path, table, "fieldIntegerNotNull", RealmFieldType.INTEGER);
-            this.fieldIntegerNullIndex = addColumnDetails(path, table, "fieldIntegerNull", RealmFieldType.INTEGER);
-            this.fieldLongNotNullIndex = addColumnDetails(path, table, "fieldLongNotNull", RealmFieldType.INTEGER);
-            this.fieldLongNullIndex = addColumnDetails(path, table, "fieldLongNull", RealmFieldType.INTEGER);
-            this.fieldFloatNotNullIndex = addColumnDetails(path, table, "fieldFloatNotNull", RealmFieldType.FLOAT);
-            this.fieldFloatNullIndex = addColumnDetails(path, table, "fieldFloatNull", RealmFieldType.FLOAT);
-            this.fieldDoubleNotNullIndex = addColumnDetails(path, table, "fieldDoubleNotNull", RealmFieldType.DOUBLE);
-            this.fieldDoubleNullIndex = addColumnDetails(path, table, "fieldDoubleNull", RealmFieldType.DOUBLE);
-            this.fieldDateNotNullIndex = addColumnDetails(path, table, "fieldDateNotNull", RealmFieldType.DATE);
-            this.fieldDateNullIndex = addColumnDetails(path, table, "fieldDateNull", RealmFieldType.DATE);
-            this.fieldObjectNullIndex = addColumnDetails(path, table, "fieldObjectNull", RealmFieldType.OBJECT);
+            this.fieldStringNotNullIndex = addColumnDetails(realm, table, "fieldStringNotNull", RealmFieldType.STRING);
+            this.fieldStringNullIndex = addColumnDetails(realm, table, "fieldStringNull", RealmFieldType.STRING);
+            this.fieldBooleanNotNullIndex = addColumnDetails(realm, table, "fieldBooleanNotNull", RealmFieldType.BOOLEAN);
+            this.fieldBooleanNullIndex = addColumnDetails(realm, table, "fieldBooleanNull", RealmFieldType.BOOLEAN);
+            this.fieldBytesNotNullIndex = addColumnDetails(realm, table, "fieldBytesNotNull", RealmFieldType.BINARY);
+            this.fieldBytesNullIndex = addColumnDetails(realm, table, "fieldBytesNull", RealmFieldType.BINARY);
+            this.fieldByteNotNullIndex = addColumnDetails(realm, table, "fieldByteNotNull", RealmFieldType.INTEGER);
+            this.fieldByteNullIndex = addColumnDetails(realm, table, "fieldByteNull", RealmFieldType.INTEGER);
+            this.fieldShortNotNullIndex = addColumnDetails(realm, table, "fieldShortNotNull", RealmFieldType.INTEGER);
+            this.fieldShortNullIndex = addColumnDetails(realm, table, "fieldShortNull", RealmFieldType.INTEGER);
+            this.fieldIntegerNotNullIndex = addColumnDetails(realm, table, "fieldIntegerNotNull", RealmFieldType.INTEGER);
+            this.fieldIntegerNullIndex = addColumnDetails(realm, table, "fieldIntegerNull", RealmFieldType.INTEGER);
+            this.fieldLongNotNullIndex = addColumnDetails(realm, table, "fieldLongNotNull", RealmFieldType.INTEGER);
+            this.fieldLongNullIndex = addColumnDetails(realm, table, "fieldLongNull", RealmFieldType.INTEGER);
+            this.fieldFloatNotNullIndex = addColumnDetails(realm, table, "fieldFloatNotNull", RealmFieldType.FLOAT);
+            this.fieldFloatNullIndex = addColumnDetails(realm, table, "fieldFloatNull", RealmFieldType.FLOAT);
+            this.fieldDoubleNotNullIndex = addColumnDetails(realm, table, "fieldDoubleNotNull", RealmFieldType.DOUBLE);
+            this.fieldDoubleNullIndex = addColumnDetails(realm, table, "fieldDoubleNull", RealmFieldType.DOUBLE);
+            this.fieldDateNotNullIndex = addColumnDetails(realm, table, "fieldDateNotNull", RealmFieldType.DATE);
+            this.fieldDateNullIndex = addColumnDetails(realm, table, "fieldDateNull", RealmFieldType.DATE);
+            this.fieldObjectNullIndex = addColumnDetails(realm, table, "fieldObjectNull", RealmFieldType.OBJECT);
         }
 
         NullTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -872,7 +872,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             columnTypes.put(table.getColumnName(i), table.getColumnType(i));
         }
 
-        final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(sharedRealm.getPath(), table);
+        final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(sharedRealm, table);
 
         if (table.hasPrimaryKey()) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
@@ -1493,7 +1493,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -1591,7 +1591,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {
@@ -1701,7 +1701,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -1841,7 +1841,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.NullTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         NullTypesColumnInfo columnInfo = (NullTypesColumnInfo) realm.schema.getColumnInfo(some.test.NullTypes.class);
         some.test.NullTypes object = null;
         while (objects.hasNext()) {

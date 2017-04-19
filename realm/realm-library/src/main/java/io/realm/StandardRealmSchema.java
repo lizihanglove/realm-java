@@ -307,24 +307,21 @@ class StandardRealmSchema extends RealmSchema {
                         String.format("Invalid query: field '%s' does not exist in table '%s'.",
                                 columnName, tableName));
             }
+            columnInfo[0][i] = columnIndex;
+            columnInfo[1][i] = NativeObject.NULLPTR;
 
-            targetTable = tableInfo.getSourceTable(columnName);
             columnType = tableInfo.getColumnType(columnName);
+            targetTable = tableInfo.getLinkedTable(columnName);
             switch (columnType) {
                 case BACKLINK:
-                    columnInfo[0][i] = tableInfo.getSourceColumnIndex(columnName);
                     columnInfo[1][i] = getNativeTablePtr(targetTable);
                     break;
 
                 case OBJECT:
                 case LIST:
-                    columnInfo[0][i] = columnIndex;
-                    columnInfo[1][i] = NativeObject.NULLPTR;
                     break;
 
                 default:
-                    columnInfo[0][i] = columnIndex;
-                    columnInfo[1][i] = NativeObject.NULLPTR;
                     if (i >= nFields - 1) { break LOOP; }
                     throw new IllegalArgumentException(
                             String.format("Invalid query: field '%s' in table '%s' is of type '%s'.  It must be a LIST or an OBJECT.",

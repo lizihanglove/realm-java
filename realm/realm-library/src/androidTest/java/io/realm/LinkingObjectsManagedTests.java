@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -569,7 +570,7 @@ public class LinkingObjectsManagedTests {
         } catch (IOException e) {
             fail("Failed copying realm");
         } catch (RealmMigrationNeededException expected) {
-            assertTrue(expected.getMessage().contains("Cannot find source class"));
+            assertTrue(expected.getMessage().contains("Cannot find source field"));
         } finally {
             Realm.deleteRealm(realmConfig);
         }

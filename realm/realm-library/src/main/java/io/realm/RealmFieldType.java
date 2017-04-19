@@ -51,8 +51,7 @@ public enum RealmFieldType {
     static {
         RealmFieldType[] columnTypes = values();
         for (int i = 0; i < columnTypes.length; i++) {
-            int v = columnTypes[i].nativeValue;
-            typeList[v] = columnTypes[i];
+            typeList[columnTypes[i].nativeValue] = columnTypes[i];
         }
     }
 

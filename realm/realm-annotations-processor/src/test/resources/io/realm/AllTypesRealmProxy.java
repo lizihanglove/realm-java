@@ -16,8 +16,6 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
-import io.realm.processor.Constants;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,18 +42,18 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         long columnObjectIndex;
         long columnRealmListIndex;
 
-        AllTypesColumnInfo(String path, Table table) {
+        AllTypesColumnInfo(SharedRealm realm, Table table) {
             super(9);
-            this.columnStringIndex = addColumnDetails(path, table, "columnString", RealmFieldType.STRING);
-            this.columnLongIndex = addColumnDetails(path, table, "columnLong", RealmFieldType.INTEGER);
-            this.columnFloatIndex = addColumnDetails(path, table, "columnFloat", RealmFieldType.FLOAT);
-            this.columnDoubleIndex = addColumnDetails(path, table, "columnDouble", RealmFieldType.DOUBLE);
-            this.columnBooleanIndex = addColumnDetails(path, table, "columnBoolean", RealmFieldType.BOOLEAN);
-            this.columnDateIndex = addColumnDetails(path, table, "columnDate", path, RealmFieldType.DATE);
-            this.columnBinaryIndex = addColumnDetails(path, table, "columnBinary", RealmFieldType.BINARY);
-            this.columnObjectIndex = addColumnDetails(path, table, "columnObject", RealmFieldType.OBJECT);
-            this.columnRealmListIndex = addColumnDetails(path, table, "columnRealmList", RealmFieldType.LIST);
-            addColumnDetails(path, table, "parentObjects", RealmFieldType.BACKLINK, "AllTypes", "columnObject");
+            this.columnStringIndex = addColumnDetails(realm, table, "columnString", RealmFieldType.STRING);
+            this.columnLongIndex = addColumnDetails(realm, table, "columnLong", RealmFieldType.INTEGER);
+            this.columnFloatIndex = addColumnDetails(realm, table, "columnFloat", RealmFieldType.FLOAT);
+            this.columnDoubleIndex = addColumnDetails(realm, table, "columnDouble", RealmFieldType.DOUBLE);
+            this.columnBooleanIndex = addColumnDetails(realm, table, "columnBoolean", RealmFieldType.BOOLEAN);
+            this.columnDateIndex = addColumnDetails(realm, table, "columnDate", RealmFieldType.DATE);
+            this.columnBinaryIndex = addColumnDetails(realm, table, "columnBinary", RealmFieldType.BINARY);
+            this.columnObjectIndex = addColumnDetails(realm, table, "columnObject", RealmFieldType.OBJECT);
+            this.columnRealmListIndex = addColumnDetails(realm, table, "columnRealmList", RealmFieldType.LIST);
+            addBacklinkDetails(realm, "parentObjects", "AllTypes", "columnObject");
         }
 
         AllTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -442,7 +440,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             columnTypes.put(table.getColumnName(i), table.getColumnType(i));
         }
 
-        final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(sharedRealm.getPath(), table);
+        final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(sharedRealm, table);
 
         if (!table.hasPrimaryKey()) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. @PrimaryKey was added.");
@@ -881,7 +879,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
@@ -936,7 +934,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         some.test.AllTypes object = null;
@@ -1003,7 +1001,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
@@ -1063,7 +1061,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.AllTypes.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
         long pkColumnIndex = table.getPrimaryKey();
         some.test.AllTypes object = null;

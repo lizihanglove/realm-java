@@ -28,14 +28,12 @@ public abstract class ColumnInfo {
     private static final class ColumnDetails {
         public final long columnIndex;
         public final RealmFieldType columnType;
-        public final String srcTable;
-        public final long srcColumn;
+        public final String linkTable;
 
-        public ColumnDetails(long columnIndex, RealmFieldType columnType, String srcTable, long srcColumn) {
+        public ColumnDetails(long columnIndex, RealmFieldType columnType, String srcTable) {
             this.columnIndex = columnIndex;
             this.columnType = columnType;
-            this.srcTable = srcTable;
-            this.srcColumn = srcColumn;
+            this.linkTable = srcTable;
         }
 
         @Override
@@ -43,10 +41,7 @@ public abstract class ColumnInfo {
             StringBuilder buf = new StringBuilder("ColumnDetails[");
             buf.append(columnIndex);
             buf.append(", ").append(columnType);
-            if (srcTable != null) {
-                buf.append(", ").append(srcTable);
-                buf.append(", ").append(srcColumn);
-            }
+            buf.append(", ").append(linkTable);
             return buf.append("]").toString();
         }
     }
@@ -69,29 +64,33 @@ public abstract class ColumnInfo {
     }
 
     /**
-     * Returns a map from column name to column index.
+     * Returns the index, in the described table, for the named column.
      *
-     * @return a map from column name to column index. Do not modify returned map because it may be
-     * shared among other {@link ColumnInfo} instances.
+     * @return column index.
      */
     public long getColumnIndex(String columnName) {
         ColumnDetails details = indicesMap.get(columnName);
         return (details == null) ? -1 : details.columnIndex;
     }
 
+    /**
+     * Returns the type, in the described table, of the named column.
+     *
+     * @return column type.
+     */
     public RealmFieldType getColumnType(String columnName) {
         ColumnDetails details = indicesMap.get(columnName);
         return (details == null) ? RealmFieldType.UNSUPPORTED_TABLE : details.columnType;
     }
 
-    public String getSourceTable(String columnName) {
+    /**
+     * Returns the table linked in the described table, to the named column.
+     *
+     * @return the class name of the linked table, or null if the column is a primitive type.
+     */
+    public String getLinkedTable(String columnName) {
         ColumnDetails details = indicesMap.get(columnName);
-        return (details == null) ? null : details.srcTable;
-    }
-
-    public long getSourceColumnIndex(String columnName) {
-        ColumnDetails details = indicesMap.get(columnName);
-        return (details == null) ? -1 : details.srcColumn;
+        return (details == null) ? null : details.linkTable;
     }
 
     /**
@@ -150,57 +149,62 @@ public abstract class ColumnInfo {
      * <b>For use only by subclasses!</b>.
      * Must be called from within constructor, to keep effectively-final contract.
      *
-     * @param realmPath Realm path, for the error message.
+     * @param realm The shared realm.
      * @param table The table to search for the column.
      * @param columnName The name of the column whose index is sought.
-     * @param columnType Type for the column.
+     * @param columnType Type RealmType of the column.
+     * @return the index of the column in the table
      */
     @SuppressWarnings("unused")
-    protected final long addColumnDetails(String realmPath, Table table, String columnName, RealmFieldType columnType) {
-        return addColumnDetails(realmPath, table, columnName, columnType, null, null);
-    }
-
-    /**
-     * Add a new backlinked column to the indexMap.
-     * <b>For use only by subclasses!</b>
-     * Must be called from within constructor, to keep effectively-final contract.
-     *
-     * @param realmPath Realm path, for the error message.
-     * @param table The table to search for the column.
-     * @param columnName The name of the column whose index is sought.
-     * @param columnType Type for the column.
-     * @param srcTableName The name of the backlink source table.
-     * @param srcColumnName Name of the backlink source column.
-     */
-    @SuppressWarnings("unused")
-    protected final long addColumnDetails(String realmPath, Table table, String columnName, RealmFieldType columnType, String srcTableName, String srcColumnName) {
-        final long columnIndex = table.getColumnIndex(columnName);
+    protected final long addColumnDetails(SharedRealm realm, Table table, String columnName, RealmFieldType columnType) {
+        long columnIndex = table.getColumnIndex(columnName);
         if (columnIndex < 0) {
             throw new RealmMigrationNeededException(
-                    realmPath,
-                    "Field '" + columnName + "' not found for type " + Table.getClassNameForTable(table.getName()));
+                    realm.getPath(),
+                    "Field '" + columnName + "' not found for type " + table.getClassName());
         }
+
+        // expensive and unnecessary?
         RealmFieldType actualColumnType = table.getColumnType(columnIndex);
         if (actualColumnType != columnType) {
             throw new RealmMigrationNeededException(
-                    realmPath,
+                    realm.getPath(),
                     "Field '" + columnName + "': expected type " + columnType + "but found " + actualColumnType);
         }
 
-        long srcColumnIndex = 0L;
+        String linkedTableName = ((columnType != RealmFieldType.OBJECT) && (columnType != RealmFieldType.LIST))
+                ? null
+                : table.getLinkTarget(columnIndex).getClassName();
 
-        indicesMap.put(columnName, new ColumnDetails(columnIndex, columnType, srcTableName, srcColumnIndex));
+        indicesMap.put(columnName, new ColumnDetails(columnIndex, columnType, linkedTableName));
 
         return columnIndex;
+    }
+
+    /**
+     * Add a new backlink to the indexMap.
+     * <b>For use only by subclasses!</b>.
+     * Must be called from within constructor, to keep effectively-final contract.
+     *
+     * @param realm The shared realm.
+     * @param columnName The name of the backlink column.
+     * @param sourceTableName The name of the backlink source class.
+     * @param sourceColumnName The name of the backlink source field.
+     */
+    @SuppressWarnings("unused")
+    protected final void addBacklinkDetails(SharedRealm realm, String columnName, String sourceTableName, String sourceColumnName) {
+        Table sourceTable = realm.getTable(Table.getTableNameForClass(sourceTableName));
+        long columnIndex = sourceTable.getColumnIndex(sourceColumnName);
+        indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.BACKLINK, sourceTableName));
     }
 
     /**
      * Returns the {@link Map} that is the implementation for this object.
      * <b>FOR TESTING USE ONLY!</b>
      *
-     * @return the corresponding {@link ColumnInfo} object, or {@code null} if not found.
+     * @return the column details map.
      */
-    @SuppressWarnings({"ReturnOfCollectionOrArrayField", "unused"})
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
     public Map<String, ColumnDetails> getIndicesMap() {
         return indicesMap;

@@ -16,7 +16,6 @@
 
 package io.realm.processor;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +52,7 @@ public class Constants {
         BACKLINK(null);
 
         private final String javaType;
+
         RealmFieldType(String javaType) {
             this.javaType = javaType;
         }
@@ -71,7 +71,7 @@ public class Constants {
     static final Map<String, RealmFieldType> JAVA_TO_REALM_TYPES;
 
     static {
-        Map<String, RealmFieldType> m  = new HashMap<String, RealmFieldType>();
+        Map<String, RealmFieldType> m = new HashMap<String, RealmFieldType>();
         m.put("byte", RealmFieldType.INTEGER);
         m.put("short", RealmFieldType.INTEGER);
         m.put("int", RealmFieldType.INTEGER);
@@ -91,29 +91,5 @@ public class Constants {
         m.put("byte[]", RealmFieldType.BINARY);
         // TODO: add support for char and Char
         JAVA_TO_REALM_TYPES = Collections.unmodifiableMap(m);
-    }
-
-    static final Map<String, String> JAVA_TO_FIELD_SETTER;
-
-    static {
-        Map<String, String> m  = new HashMap<String, String>();
-        m.put("byte", "setByte");
-        m.put("short", "setShort");
-        m.put("int", "setInt");
-        m.put("long", "setLong");
-        m.put("float", "setFloat");
-        m.put("double", "setDouble");
-        m.put("boolean", "setBoolean");
-        m.put("java.lang.Byte", "set");
-        m.put("java.lang.Short", "set");
-        m.put("java.lang.Integer", "set");
-        m.put("java.lang.Long", "set");
-        m.put("java.lang.Float", "set");
-        m.put("java.lang.Double", "set");
-        m.put("java.lang.Boolean", "set");
-        m.put("java.lang.String", "set");
-        m.put("java.util.Date", "set");
-        m.put("byte[]", "set");
-        JAVA_TO_FIELD_SETTER = Collections.unmodifiableMap(m);
     }
 }

@@ -209,9 +209,7 @@ class OsRealmSchema extends RealmSchema {
     }
 
     /**
-     * @inheritDoc
-     *
-     * Unimplemented.
+     * @inheritDoc Unimplemented.
      */
     @Override
     long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes) {

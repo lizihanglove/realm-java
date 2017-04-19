@@ -832,11 +832,11 @@ public class RealmTests {
         long seed = 20;
         Random random = new Random(seed);
 
-        int random_value = 0;
 
         String test_char = "";
         String test_char_old = "";
 
+        int random_value;
         for (int i = 0; i < 1000; i++) {
             random_value = random.nextInt(25);
 
@@ -1104,7 +1104,7 @@ public class RealmTests {
 
         AllTypes allTypes = new AllTypes();
         allTypes.setColumnString("String");
-        allTypes.setColumnLong(1l);
+        allTypes.setColumnLong(1L);
         allTypes.setColumnFloat(1f);
         allTypes.setColumnDouble(1d);
         allTypes.setColumnBoolean(true);
@@ -2329,7 +2329,7 @@ public class RealmTests {
                 DefaultValueConstructor.FIELD_SHORT_DEFAULT_VALUE);
         testOneObjectFound(realm, DefaultValueConstructor.class,
                 DefaultValueConstructor.FIELD_INT,
-                DefaultValueConstructor.FIELD_INT_DEFAULT_VALUE);;
+                DefaultValueConstructor.FIELD_INT_DEFAULT_VALUE);
         // Default value for pk must be ignored.
         testNoObjectFound(realm, DefaultValueConstructor.class,
                 DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY,
@@ -3719,7 +3719,7 @@ public class RealmTests {
         // Verify that the index in the ColumnInfo has been updated.
         catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.getColumnInfo(Cat.class);
         assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
-        assertEquals(nameIndexNew.get(), (long) catColumnInfo.getIndicesMap().get(Cat.FIELD_NAME));
+        assertEquals(nameIndexNew.get(), (long) catColumnInfo.getColumnIndex(Cat.FIELD_NAME));
 
         // Checks by actual get and set.
         realm.executeTransaction(new Realm.Transaction() {

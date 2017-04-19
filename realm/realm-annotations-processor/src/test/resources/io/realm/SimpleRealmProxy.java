@@ -35,10 +35,10 @@ public class SimpleRealmProxy extends some.test.Simple
         long nameIndex;
         long ageIndex;
 
-        SimpleColumnInfo(String path, Table table) {
+        SimpleColumnInfo(SharedRealm realm, Table table) {
             super(2);
-            this.nameIndex = addColumnDetails(path, table, "name", RealmFieldType.STRING);
-            this.ageIndex = addColumnDetails(path, table, "age", RealmFieldType.INTEGER);
+            this.nameIndex = addColumnDetails(realm, table, "name", RealmFieldType.STRING);
+            this.ageIndex = addColumnDetails(realm, table, "age", RealmFieldType.INTEGER);
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {
@@ -171,7 +171,7 @@ public class SimpleRealmProxy extends some.test.Simple
             columnTypes.put(table.getColumnName(i), table.getColumnType(i));
         }
 
-        final SimpleColumnInfo columnInfo = new SimpleColumnInfo(sharedRealm.getPath(), table);
+        final SimpleColumnInfo columnInfo = new SimpleColumnInfo(sharedRealm, table);
 
         if (table.hasPrimaryKey()) {
             throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
@@ -296,7 +296,7 @@ public class SimpleRealmProxy extends some.test.Simple
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.Simple.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -310,7 +310,7 @@ public class SimpleRealmProxy extends some.test.Simple
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Simple.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
         some.test.Simple object = null;
         while (objects.hasNext()) {
@@ -336,7 +336,7 @@ public class SimpleRealmProxy extends some.test.Simple
             return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
         }
         Table table = realm.getTable(some.test.Simple.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
@@ -352,7 +352,7 @@ public class SimpleRealmProxy extends some.test.Simple
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.Simple.class);
-        long tableNativePtr = table.getNativeTablePointer();
+        long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
         some.test.Simple object = null;
         while (objects.hasNext()) {

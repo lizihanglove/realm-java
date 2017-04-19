@@ -711,8 +711,7 @@ public class Table implements TableSchema, NativeObject {
     public Table getLinkTarget(long columnIndex) {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         // Copies context reference from parent.
-        Table table = new Table(this.sharedRealm, nativeTablePointer);
-        return table;
+        return new Table(this.sharedRealm, nativeTablePointer);
     }
 
     public boolean isNull(long columnIndex, long rowIndex) {
@@ -1093,6 +1092,15 @@ public class Table implements TableSchema, NativeObject {
      */
     public String getName() {
         return nativeGetName(nativePtr);
+    }
+
+    /**
+     * Returns the class name for the table.
+     *
+     * @return Name of the the table or null if it not part of a group.
+     */
+    public String getClassName() {
+        return getClassNameForTable(getName());
     }
 
     public String toJson() {

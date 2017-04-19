@@ -44,8 +44,6 @@ import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
-import static io.realm.processor.Constants.RealmFieldType.STRING;
-
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -53,14 +51,14 @@ import static io.realm.processor.Constants.RealmFieldType.STRING;
 public class ClassMetaData {
 
     private final TypeElement classType; // Reference to model class.
-    private String className; // Model class simple name.
+    private final String className; // Model class simple name.
+    private final List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
+    private final List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
+    private final Set<Backlink> backlinks = new HashSet<Backlink>();
+    private final Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
-    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
-    private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
-    private Set<Backlink> backlinks = new HashSet<Backlink>();
-    private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private boolean containsToString;
     private boolean containsEquals;
     private boolean containsHashCode;
@@ -184,10 +182,7 @@ public class ClassMetaData {
      * @return {@code true} if a VariableElement is primary key, {@code false} otherwise.
      */
     public boolean isPrimaryKey(VariableElement variableElement) {
-        if (primaryKey == null) {
-            return false;
-        }
-        return primaryKey.equals(variableElement);
+        return primaryKey != null && primaryKey.equals(variableElement);
     }
 
     /**
@@ -197,10 +192,7 @@ public class ClassMetaData {
      */
     public boolean isModelClass() {
         String type = classType.toString();
-        if (type.equals("io.realm.DynamicRealmObject")) {
-            return false;
-        }
-        return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
+        return !type.equals("io.realm.DynamicRealmObject") && (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
     }
 
     /**

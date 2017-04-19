@@ -695,6 +695,7 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    //FIXME!! This stuff doesn't appear to be used.  It should be deleted or explained.
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {
         @Override
         protected RealmObjectContext initialValue() {

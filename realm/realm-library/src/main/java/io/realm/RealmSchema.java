@@ -109,8 +109,11 @@ public abstract class RealmSchema {
     abstract long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes);
 
     abstract Table getTable(Class<? extends RealmModel> clazz);
+
     abstract Table getTable(String className);
+
     abstract RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz);
+
     abstract RealmObjectSchema getSchemaForClass(String className);
 
     /**
@@ -158,7 +161,7 @@ public abstract class RealmSchema {
 
     /**
      * Updates all {@link ColumnInfo} elements in {@code columnIndices}.
-     *
+     * <p>
      * <p>
      * The ColumnInfo elements are shared between all {@link RealmObject}s created by the Realm instance
      * which owns this RealmSchema. Updating them also means updating indices information in those {@link RealmObject}s.
