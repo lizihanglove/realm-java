@@ -92,7 +92,7 @@ public abstract class RealmSchema {
     public abstract boolean contains(String className);
 
     /**
-     * Parses the passed filed description (@see parseFieldDescription(String) and returns the information
+     * Parses the passed field description (@see parseFieldDescription(String) and returns the information
      * necessary for RealmQuery predicates to select the specified records.
      * Because the values returned by this method will, immediately, be handed to native code, they are
      * in coordinated arrays, not a List&lt;ColInfo&gt;
@@ -118,7 +118,7 @@ public abstract class RealmSchema {
 
     /**
      * Parse the passed field description into its components.
-     * This must be standard across impleentations and is, therefore, implemented in the base class.
+     * This must be standard across implementations and is, therefore, implemented in the base class.
      *
      * @param fieldDescription a field description.
      * @return the parse tree: a list of column names
@@ -161,8 +161,7 @@ public abstract class RealmSchema {
 
     /**
      * Updates all {@link ColumnInfo} elements in {@code columnIndices}.
-     * <p>
-     * <p>
+     *
      * The ColumnInfo elements are shared between all {@link RealmObject}s created by the Realm instance
      * which owns this RealmSchema. Updating them also means updating indices information in those {@link RealmObject}s.
      *

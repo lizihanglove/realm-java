@@ -313,7 +313,7 @@ class StandardRealmSchema extends RealmSchema {
             columnType = tableInfo.getColumnType(columnName);
             targetTable = tableInfo.getLinkedTable(columnName);
             switch (columnType) {
-                case BACKLINK:
+                case LINKING_OBJECTS:
                     columnInfo[1][i] = getNativeTablePtr(targetTable);
                     break;
 

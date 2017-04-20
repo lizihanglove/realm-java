@@ -240,7 +240,7 @@ public class SortDescriptorTests {
         List<RealmFieldType> types = new ArrayList<>();
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!filter.contains(type) &&
-                    type != RealmFieldType.BACKLINK && //FIXME!!! GBM
+                    type != RealmFieldType.LINKING_OBJECTS && //FIXME!!! GBM
                     type != RealmFieldType.UNSUPPORTED_DATE &&
                     type != RealmFieldType.UNSUPPORTED_TABLE&&
                     type != RealmFieldType.UNSUPPORTED_MIXED) {

@@ -2461,7 +2461,7 @@ public class RealmQueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NULL).count());
-        // FIXME: Currently, Realm Core does not support isNotNull() query for nested link field.
+        // FIXME!!! GBM - Currently, Realm Core does not support isNotNull() query for nested link field.
         // 11 Object
         //assertEquals(1, realm.where(NullTypes.class).isNotNull(
         //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
@@ -2719,7 +2719,7 @@ public class RealmQueryTests {
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
         list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        list.remove(RealmFieldType.BACKLINK); //FIXME!!! GBM
+        list.remove(RealmFieldType.LINKING_OBJECTS); //FIXME!!! GBM
         NOT_SUPPORTED_IS_EMPTY_TYPES = list;
     }
 
@@ -2843,7 +2843,7 @@ public class RealmQueryTests {
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
         list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        list.remove(RealmFieldType.BACKLINK); //FIXME!!! GBM
+        list.remove(RealmFieldType.LINKING_OBJECTS); //FIXME!!! GBM
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
     }
 

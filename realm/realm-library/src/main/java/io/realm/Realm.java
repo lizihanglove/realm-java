@@ -1692,13 +1692,11 @@ public class Realm extends BaseRealm {
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             final Map<Class<? extends RealmModel>, ColumnInfo> map;
             map = new HashMap<>(modelClasses.size());
-            try {
-                for (Class<? extends RealmModel> clazz : modelClasses) {
-                    final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
-                    map.put(clazz, columnInfo);
-                }
-            } catch (RealmMigrationNeededException e) {
-                throw e; // WTF??
+
+            // This block may throw a RealmMigrationNeededException.
+            for (Class<? extends RealmModel> clazz : modelClasses) {
+                final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
+                map.put(clazz, columnInfo);
             }
 
             cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);

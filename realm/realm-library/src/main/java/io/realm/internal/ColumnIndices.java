@@ -84,6 +84,7 @@ public final class ColumnIndices {
     /**
      * Convenience method to return the column index for a given field on a clazz
      * or {@code -1} if no such field exists.
+     * @deprecated Use {@code getColumnInfo().getColumnIndex()} instead.
      *
      * @param clazz the class to search.
      * @param fieldName the name of the field whose index is needed.

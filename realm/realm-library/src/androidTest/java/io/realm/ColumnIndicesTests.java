@@ -17,7 +17,6 @@ package io.realm;
 
 import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -39,6 +38,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
 import static junit.framework.Assert.assertSame;
 import static org.junit.Assert.assertNotEquals;
+
 
 @RunWith(AndroidJUnit4.class)
 public class ColumnIndicesTests {

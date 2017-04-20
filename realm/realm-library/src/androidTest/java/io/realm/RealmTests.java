@@ -170,15 +170,15 @@ public class RealmTests {
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date());
             allTypes.setColumnDouble(Math.PI);
-            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnFloat(1.234567F + i);
 
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
             NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
-            nonLatinFieldNames.set베타(1.234567f + i);
-            nonLatinFieldNames.setΒήτα(1.234567f + i);
+            nonLatinFieldNames.set베타(1.234567F + i);
+            nonLatinFieldNames.setΒήτα(1.234567F + i);
         }
         realm.commitTransaction();
     }
@@ -316,7 +316,7 @@ public class RealmTests {
             }
 
             try {
-                realm.where(AllTypes.class).equalTo(columnData.get(i), 13.37d).findAll();
+                realm.where(AllTypes.class).equalTo(columnData.get(i), 13.37D).findAll();
                 if (i != 2) {
                     fail("Realm.where should fail with illegal argument");
                 }
@@ -324,7 +324,7 @@ public class RealmTests {
             }
 
             try {
-                realm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711f).findAll();
+                realm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711F).findAll();
                 if (i != 3) {
                     fail("Realm.where should fail with illegal argument");
                 }
@@ -1106,8 +1106,8 @@ public class RealmTests {
         AllTypes allTypes = new AllTypes();
         allTypes.setColumnString("String");
         allTypes.setColumnLong(1L);
-        allTypes.setColumnFloat(1f);
-        allTypes.setColumnDouble(1d);
+        allTypes.setColumnFloat(1F);
+        allTypes.setColumnDouble(1D);
         allTypes.setColumnBoolean(true);
         allTypes.setColumnDate(date);
         allTypes.setColumnBinary(new byte[]{1, 2, 3});
@@ -2496,8 +2496,8 @@ public class RealmTests {
         assertEquals(fieldLongPrimaryKeyValue, managedObj.getFieldLongPrimaryKey());
         assertEquals(fieldLongValue, managedObj.getFieldLong());
         assertEquals(fieldByteValue, managedObj.getFieldByte());
-        assertEquals(fieldFloatValue, managedObj.getFieldFloat(), 0f);
-        assertEquals(fieldDoubleValue, managedObj.getFieldDouble(), 0d);
+        assertEquals(fieldFloatValue, managedObj.getFieldFloat(), 0F);
+        assertEquals(fieldDoubleValue, managedObj.getFieldDouble(), 0D);
         assertEquals(fieldBooleanValue, managedObj.isFieldBoolean());
         assertEquals(fieldDateValue, managedObj.getFieldDate());
         assertTrue(Arrays.equals(fieldBinaryValue, managedObj.getFieldBinary()));
@@ -2552,8 +2552,8 @@ public class RealmTests {
         assertEquals(managedObj.getFieldLongPrimaryKey(), copy.getFieldLongPrimaryKey());
         assertEquals(managedObj.getFieldLong(), copy.getFieldLong());
         assertEquals(managedObj.getFieldByte(), copy.getFieldByte());
-        assertEquals(managedObj.getFieldFloat(), copy.getFieldFloat(), 0f);
-        assertEquals(managedObj.getFieldDouble(), copy.getFieldDouble(), 0d);
+        assertEquals(managedObj.getFieldFloat(), copy.getFieldFloat(), 0F);
+        assertEquals(managedObj.getFieldDouble(), copy.getFieldDouble(), 0D);
         assertEquals(managedObj.isFieldBoolean(), copy.isFieldBoolean());
         assertEquals(managedObj.getFieldDate(), copy.getFieldDate());
         assertTrue(Arrays.equals(managedObj.getFieldBinary(), copy.getFieldBinary()));

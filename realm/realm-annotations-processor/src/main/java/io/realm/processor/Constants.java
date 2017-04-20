@@ -39,31 +39,47 @@ public class Constants {
             "throw new io.realm.exceptions.RealmException(\"\\\"%s\\\" field \\\"%s\\\" cannot be loaded from json\")";
 
 
+    /**
+     * Realm types and their corresponding Java types
+     */
     public enum RealmFieldType {
-        INTEGER("Long"),
-        FLOAT("Float"),
-        DOUBLE("Double"),
-        BOOLEAN("Boolean"),
-        STRING("String"),
-        DATE("Date"),
-        BINARY("BinaryByteArray"),
-        OBJECT(null),
-        LIST(null),
-        BACKLINK(null);
+        INTEGER("Long", "INTEGER"),
+        FLOAT("Float", "FLOAT"),
+        DOUBLE("Double", "DOUBLE"),
+        BOOLEAN("Boolean", "BOOLEAN"),
+        STRING("String", "STRING"),
+        DATE("Date", "DATE"),
+        BINARY("BinaryByteArray", "BINARY"),
+        OBJECT("Object", "OBJECT"),
+        LIST("List", "LIST"),
+        BACKLINK(null, "BACKLINK");
 
         private final String javaType;
+        private final String realmType;
 
-        RealmFieldType(String javaType) {
+        /**
+         * @param javaType The simple name of the Java type needed to store this Realm Type
+         * @param realmType The simple name of the Enum type used in the Java bindings, to represent this type.
+         */
+        RealmFieldType(String javaType, String realmType) {
             this.javaType = javaType;
+            this.realmType = "RealmFieldType." + realmType;
         }
 
+        /**
+         * Get the name of the Java type needed to store this Realm Type
+         * @return the simple name for the corresponding Java type
+         */
         public String getJavaType() {
             return javaType;
         }
 
-        @Override
-        public String toString() {
-            return "RealmFieldType." + super.toString();
+        /**
+         * Get the name of the enum, used in the Java bindings, used to represent the corresponding type.
+         * @return the name of the enum used to represent this Realm Type
+         */
+        public String getRealmType() {
+            return realmType;
         }
     }
 

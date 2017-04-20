@@ -16,12 +16,11 @@
 
 package io.realm.internal;
 
-import android.util.Log;
-
 import java.util.Date;
 
 import io.realm.Case;
 import io.realm.Sort;
+import io.realm.log.RealmLog;
 
 
 public class TableQuery implements NativeObject {
@@ -42,7 +41,7 @@ public class TableQuery implements NativeObject {
     // FIXME: Either explain why we need the context, of quit holding on to it.
     public TableQuery(Context context, Table table, long nativeQueryPtr) {
         if (DEBUG) {
-            Log.d(TAG, "New TableQuery: ptr= " + nativeQueryPtr);
+            RealmLog.debug("New TableQuery: ptr=%x", nativeQueryPtr);
         }
         this.context = context;
         this.table = table;

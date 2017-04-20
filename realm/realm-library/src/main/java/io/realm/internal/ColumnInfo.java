@@ -195,7 +195,7 @@ public abstract class ColumnInfo {
     protected final void addBacklinkDetails(SharedRealm realm, String columnName, String sourceTableName, String sourceColumnName) {
         Table sourceTable = realm.getTable(Table.getTableNameForClass(sourceTableName));
         long columnIndex = sourceTable.getColumnIndex(sourceColumnName);
-        indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.BACKLINK, sourceTableName));
+        indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
     }
 
     /**

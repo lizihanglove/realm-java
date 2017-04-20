@@ -159,7 +159,7 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             writer.emitStatement(
                     "this.%1$sIndex = addColumnDetails(realm, table, \"%1$s\", %2$s)",
-                    field.getSimpleName().toString(), getRealmType(field).toString());
+                    field.getSimpleName().toString(), getRealmType(field).getRealmType());
         }
         for (Backlink backlink : metadata.getBacklinkFields()) {
             writer.emitStatement(
@@ -628,7 +628,7 @@ public class RealmProxyClassGenerator {
                     String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
                     writer.emitStatement("realmObjectSchema.add(\"%s\", %s, %s, %s, %s)",
                             fieldName,
-                            fieldType.toString(),
+                            fieldType.getRealmType(),
                             primaryKeyFlag,
                             indexedFlag,
                             nullableFlag);
@@ -754,7 +754,7 @@ public class RealmProxyClassGenerator {
                 "\")", fieldName);
         writer.endControlFlow();
         writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)",
-                fieldName, getRealmType(field).toString());
+                fieldName, getRealmType(field).getRealmType());
         emitMigrationNeededException(writer, "\"Invalid type '%s' for field '%s' in existing Realm file.\")",
                 Utils.getFieldTypeSimpleName(field), fieldName);
         writer.endControlFlow();

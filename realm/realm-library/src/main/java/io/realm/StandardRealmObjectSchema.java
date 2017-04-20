@@ -584,7 +584,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * Returns the column index in the underlying table for the given field name.
      *
      * @param fieldName field name to find index for.
-     * @return column index or null if it doesn't exists.
+     * @return column index or -1 if it doesn't exists.
      */
     long getFieldIndex(String fieldName) {
         return columnInfo.getColumnIndex(fieldName);
@@ -599,7 +599,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      */
     @Override
     long getAndCheckFieldIndex(String fieldName) {
-        long index = columnInfo.getColumnIndex(fieldName);
+        long index = getFieldIndex(fieldName);
         if (index < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
