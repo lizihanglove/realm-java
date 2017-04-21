@@ -35,7 +35,7 @@ import io.realm.internal.Table;
  * @see RealmMigration
  */
 public abstract class RealmSchema {
-    protected ColumnIndices columnIndices; // Cached field look up
+    private ColumnIndices columnIndices; // Cached field look up
 
     /**
      * Release the schema and any of native resources it might hold.
@@ -106,7 +106,7 @@ public abstract class RealmSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return a pair of arrays:  [0] is column indices, [1] is either NativeObject.NULLPTR or a native table pointer.
      */
-    abstract long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes);
+    abstract long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes);
 
     abstract Table getTable(Class<? extends RealmModel> clazz);
 
@@ -171,6 +171,10 @@ public abstract class RealmSchema {
         columnIndices.copyFrom(schemaVersion);
     }
 
+    final boolean isProxyClass(Class<? extends RealmModel> modelClass, Class<? extends RealmModel> testee) {
+        return modelClass.equals(testee);
+    }
+
     /**
      * Sometimes you need ColumnIndicies that can be passed between threads.
      * Setting the mutable flag false creates an instance that is effectively final.
@@ -183,14 +187,8 @@ public abstract class RealmSchema {
         return new ColumnIndices(columnIndices, false);
     }
 
-    final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
-        checkIndices();
-        return columnIndices.getColumnInfo(clazz);
-    }
-
-    final ColumnInfo getColumnInfo(String className) {
-        checkIndices();
-        return columnIndices.getColumnInfo(className);
+    final boolean haveColumnInfo() {
+        return columnIndices != null;
     }
 
     final long getSchemaVersion() {
@@ -198,12 +196,18 @@ public abstract class RealmSchema {
         return this.columnIndices.getSchemaVersion();
     }
 
-    final boolean isProxyClass(Class<? extends RealmModel> modelClass, Class<? extends RealmModel> testee) {
-        return modelClass.equals(testee);
+    final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
+        checkIndices();
+        return columnIndices.getColumnInfo(clazz);
+    }
+
+    protected final ColumnInfo getColumnInfo(String className) {
+        checkIndices();
+        return columnIndices.getColumnInfo(className);
     }
 
     private void checkIndices() {
-        if (this.columnIndices == null) {
+        if (!haveColumnInfo()) {
             throw new IllegalStateException("Attempt to use column index before set.");
         }
     }

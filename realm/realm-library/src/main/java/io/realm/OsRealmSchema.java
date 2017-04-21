@@ -69,7 +69,7 @@ class OsRealmSchema extends RealmSchema {
         }
 
         @Override
-        long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes) {
+        long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
             throw new UnsupportedOperationException();
         }
 
@@ -108,7 +108,7 @@ class OsRealmSchema extends RealmSchema {
 
     private long nativePtr;
 
-    // FIXME!!! GBM
+    // TODO:
     // Because making getAll return Set<? Extends RealmObjectSchema> is a breaking change
     // Creator.getAll must return Set<RealmObjectSchema> instead of Set<? extends RealmObjectSchema>
     // That necessitates the cast inside the loop below.
@@ -212,7 +212,7 @@ class OsRealmSchema extends RealmSchema {
      * Unimplemented.
      */
     @Override
-    long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType[] validColumnTypes) {
+    long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
         throw new UnsupportedOperationException();
     }
 

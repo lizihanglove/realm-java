@@ -691,7 +691,6 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         }
     }
 
-    // FIXME!!! GBM - fix DynamicRealm
     private static final class DynamicColumnIndices extends ColumnInfo {
         private final Table table;
 
@@ -707,8 +706,9 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
 
         @Override
         protected ColumnInfo copy(boolean immutable) {
-            return this;
+            throw new UnsupportedOperationException("DynamicColumnIndices cannot be copied");
         }
+
 
         @Override
         protected void copy(ColumnInfo src, ColumnInfo dst) {
