@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -39,6 +38,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+
 
 @RunWith(AndroidJUnit4.class)
 public class SortDescriptorTests {
@@ -112,7 +112,7 @@ public class SortDescriptorTests {
         table.addSearchIndex(intColumn);
 
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(table, new String[] {
-               stringType.name(), intType.name()});
+                stringType.name(), intType.name()});
         assertEquals(2, sortDescriptor.getColumnIndices().length);
         assertNull(sortDescriptor.getAscendings());
         assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
@@ -123,7 +123,7 @@ public class SortDescriptorTests {
 
     @Test
     public void getInstanceForDistinct_shouldThrowOnInvalidField() {
-        List<RealmFieldType> types =  getValidFieldTypes(SortDescriptor.validFieldTypesForDistinct);
+        List<RealmFieldType> types = getValidFieldTypes(SortDescriptor.validFieldTypesForDistinct);
 
         for (RealmFieldType type : types) {
             try {
@@ -205,7 +205,7 @@ public class SortDescriptorTests {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Number of fields and sort orders do not match.");
         SortDescriptor.getInstanceForSort(table,
-                new String[] { stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
+                new String[] {stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
 
     }
 
@@ -235,14 +235,13 @@ public class SortDescriptorTests {
         SortDescriptor.getInstanceForSort(table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
     }
 
-    @NonNull
     private List<RealmFieldType> getValidFieldTypes(List<RealmFieldType> filter) {
         List<RealmFieldType> types = new ArrayList<>();
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!filter.contains(type) &&
                     type != RealmFieldType.LINKING_OBJECTS && //FIXME!!! GBM
                     type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE&&
+                    type != RealmFieldType.UNSUPPORTED_TABLE &&
                     type != RealmFieldType.UNSUPPORTED_MIXED) {
                 if ((type != RealmFieldType.LIST) && (type != RealmFieldType.OBJECT)) {
                     table.addColumn(type, type.name());

@@ -31,6 +31,11 @@ import io.realm.internal.Table;
 public abstract class RealmObjectSchema {
     private final RealmSchema schema;
 
+    /**
+     * Create a schema.
+     *
+     * @param schema The parent for this schema: the schema to which this object belongs
+     */
     protected RealmObjectSchema(RealmSchema schema) {
         this.schema = schema;
     }
@@ -300,16 +305,5 @@ public abstract class RealmObjectSchema {
      */
     public interface Function {
         void apply(DynamicRealmObject obj);
-    }
-
-    // Tuple containing data about each supported Java type.
-    protected static class FieldMetaData {
-        protected final RealmFieldType realmType;
-        protected final boolean defaultNullable;
-
-        protected FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
-            this.realmType = realmType;
-            this.defaultNullable = defaultNullable;
-        }
     }
 }

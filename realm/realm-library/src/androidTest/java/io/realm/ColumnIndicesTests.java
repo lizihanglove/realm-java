@@ -111,11 +111,11 @@ public class ColumnIndicesTests {
 
         catColumnInfoInSource.nameIndex++;
 
-        // Checks preconditions
+        // Checks preconditions.
         assertNotEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);
         assertNotSame(catColumnInfoInSource.getIndicesMap(), catColumnInfoInTarget.getIndicesMap());
 
-        target.copyFrom(source, mediator);
+        target.copyFrom(source);
 
         assertEquals(sourceSchemaVersion, target.getSchemaVersion());
         assertEquals(catColumnInfoInSource.nameIndex, catColumnInfoInTarget.nameIndex);

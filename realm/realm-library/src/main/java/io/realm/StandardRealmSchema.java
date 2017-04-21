@@ -285,14 +285,13 @@ class StandardRealmSchema extends RealmSchema {
         columnInfo[0] = new long[nFields];
         columnInfo[1] = new long[nFields];
 
-        String tableName = Table.getClassNameForTable(table);
+        String tableName = table.getClassName();
 
-        String columnName;
         ColumnInfo tableInfo;
-        String targetTable;
-        RealmFieldType columnType;
-        LOOP:
-        for (int i = 0; /* loop exits in middle */ ; i++) {
+        String columnName = null;
+        RealmFieldType columnType = null;
+
+        for (int i = 0; i < nFields; i++) {
             columnName = fields.get(i);
             if ((columnName == null) || (columnName.length() <= 0)) {
                 throw new IllegalArgumentException(String.format(
@@ -301,40 +300,45 @@ class StandardRealmSchema extends RealmSchema {
             }
 
             tableInfo = getColumnInfo(tableName);
+            if (tableInfo == null) {
+                throw new IllegalArgumentException(String.format(
+                        "Invalid query: table '%s' does not exist in this schema.",
+                        tableName));
+            }
+
             long columnIndex = tableInfo.getColumnIndex(columnName);
             if (columnIndex < 0) {
-                throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' does not exist in table '%s'.",
-                                columnName, tableName));
+                throw new IllegalArgumentException(String.format(
+                        "Invalid query: field '%s' does not exist in table '%s'.",
+                        columnName, tableName));
             }
-            columnInfo[0][i] = columnIndex;
-            columnInfo[1][i] = NativeObject.NULLPTR;
 
             columnType = tableInfo.getColumnType(columnName);
-            targetTable = tableInfo.getLinkedTable(columnName);
-            switch (columnType) {
-                case LINKING_OBJECTS:
-                    columnInfo[1][i] = getNativeTablePtr(targetTable);
-                    break;
+            // all but the last field must be a link type
+            if (i < nFields - 1) {
+                switch (columnType) {
+                    case LINKING_OBJECTS:
+                    case OBJECT:
+                    case LIST:
+                        break;
 
-                case OBJECT:
-                case LIST:
-                    break;
-
-                default:
-                    if (i >= nFields - 1) { break LOOP; }
-                    throw new IllegalArgumentException(
-                            String.format("Invalid query: field '%s' in table '%s' is of type '%s'.  It must be a LIST or an OBJECT.",
-                                    columnName, tableName, columnType.toString()));
+                    default:
+                        throw new IllegalArgumentException(String.format(
+                                "Invalid query: field '%s' in table '%s' is of type '%s'.  It must be a LIST, OBJECT or LINKING_OBJECT.",
+                                columnName, tableName, columnType.toString()));
+                }
             }
 
-            tableName = targetTable;
+            tableName = tableInfo.getLinkedTable(columnName);
+
+            columnInfo[0][i] = columnIndex;
+            columnInfo[1][i] = (columnType != RealmFieldType.LINKING_OBJECTS) ? NativeObject.NULLPTR : getNativeTablePtr(tableName);
         }
 
         if (!isValidType(columnType, validColumnTypes)) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
-                            columnName, tableName, columnType.toString()));
+            throw new IllegalArgumentException(String.format(
+                    "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
+                    columnName, tableName, columnType.toString()));
         }
 
         return columnInfo;
@@ -352,10 +356,6 @@ class StandardRealmSchema extends RealmSchema {
         }
 
         return false;
-    }
-
-    private ColumnInfo getColumnInfo(String tableName) {
-        return columnIndices.getColumnInfo(tableName);
     }
 
     private long getNativeTablePtr(String targetTable) {

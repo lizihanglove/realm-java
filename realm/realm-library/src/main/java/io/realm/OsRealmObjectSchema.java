@@ -28,6 +28,7 @@ class OsRealmObjectSchema extends RealmObjectSchema {
      * the validation of schema, object schemas and properties through the object store. Even though the constructor
      * is public, there is never a purpose which justifies calling it!
      *
+     * @param schema The parent for this schema: the schema to which this object belongs
      * @param className name of the class
      */
     OsRealmObjectSchema(RealmSchema schema, String className) {

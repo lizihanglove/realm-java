@@ -62,6 +62,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery(
 // helper functions
 
 // Return TableRef used for build link queries
+// Each element in the indicesArray is the index of a column to be used to link to the next TableRef.
+// If the corresponding entry in tablesArray is anything other than a nullptr, the link is a backlink.
+// In that case, the tablesArray element is the pointer to the backlink source table and the
+// indicesArray entry is the source column index in the source table.
 static TableRef getTableForLinkQuery(jlong nativeQueryPtr, JniLongArray& tablesArray, JniLongArray& indicesArray)
 {
     TableRef table_ref = Q(nativeQueryPtr)->get_table();

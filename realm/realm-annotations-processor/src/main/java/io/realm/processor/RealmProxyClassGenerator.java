@@ -106,7 +106,7 @@ public class RealmProxyClassGenerator {
                 interfaceName)
                 .emitEmptyLine();
 
-        emitColumnIndicesClass(writer);
+        emitColumnInfoClass(writer);
 
         emitClassFields(writer);
         emitConstructor(writer);
@@ -138,7 +138,7 @@ public class RealmProxyClassGenerator {
         writer.close();
     }
 
-    private void emitColumnIndicesClass(JavaWriter writer) throws IOException {
+    private void emitColumnInfoClass(JavaWriter writer) throws IOException {
         writer.beginType(
                 columnInfoClassName(),                       // full qualified name of the item to generate
                 "class",                                     // the type of the item
@@ -603,6 +603,7 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
+            // FIXME!!! GBM - This throws on unrecognized type.  The code it replaces just ignores it.
             Constants.RealmFieldType fieldType = getRealmType(field);
             switch (fieldType) {
                 case OBJECT:

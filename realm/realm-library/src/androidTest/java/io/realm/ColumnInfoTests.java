@@ -30,6 +30,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -40,11 +41,13 @@ public class ColumnInfoTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     private Realm realm;
+    private RealmProxyMediator mediator;
 
     @Before
     public void setUp() {
         RealmConfiguration config = configFactory.createConfiguration();
         realm = Realm.getInstance(config);
+        mediator = realm.getConfiguration().getSchemaMediator();
     }
 
     @After
@@ -56,10 +59,10 @@ public class ColumnInfoTests {
 
     @Test
     public void copyColumnInfoFrom_checkIndex() {
-        final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        final CatRealmProxy.CatColumnInfo sourceColumnInfo, targetColumnInfo;
-        sourceColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
-        targetColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        CatRealmProxy.CatColumnInfo sourceColumnInfo
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        CatRealmProxy.CatColumnInfo targetColumnInfo
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
 
         // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
@@ -96,10 +99,9 @@ public class ColumnInfoTests {
     }
 
     @Test
-    public void clone_differentInstanceSameValues() {
-        final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        final CatRealmProxy.CatColumnInfo columnInfo;
-        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+    public void copy_differentInstanceSameValues() {
+        final CatRealmProxy.CatColumnInfo columnInfo
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
 
         columnInfo.nameIndex = 1;
         columnInfo.ageIndex = 2;
@@ -143,5 +145,18 @@ public class ColumnInfoTests {
         assertEquals(6, copy.birthdayIndex);
         assertEquals(7, copy.ownerIndex);
         assertEquals(8, copy.scaredOfDogIndex);
+    }
+
+    @Test
+    public void copy_immutableThrows() {
+        final CatRealmProxy.CatColumnInfo original
+                = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+
+        CatRealmProxy.CatColumnInfo copy = (CatRealmProxy.CatColumnInfo) original.copy(false);
+        try {
+            copy.copyFrom(original);
+            fail("Attempt to copy to an immutable ColumnInfo should throwS");
+        } catch (UnsupportedOperationException ignore) {
+        }
     }
 }

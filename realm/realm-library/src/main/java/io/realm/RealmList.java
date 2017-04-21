@@ -30,7 +30,6 @@ import java.util.NoSuchElementException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Table;
 import rx.Observable;
 
 
@@ -247,7 +246,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
             if (proxy instanceof DynamicRealmObject) {
-                String listClassName = Table.getClassNameForTable(view.getTargetTable());
+                String listClassName = view.getTargetTable().getClassName();
                 if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
                     String objectClassName = ((DynamicRealmObject) object).getType();
                     if (listClassName.equals(objectClassName)) {

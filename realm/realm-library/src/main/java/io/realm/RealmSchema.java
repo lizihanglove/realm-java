@@ -23,7 +23,6 @@ import java.util.Set;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 
 
@@ -95,11 +94,12 @@ public abstract class RealmSchema {
      * Parses the passed field description (@see parseFieldDescription(String) and returns the information
      * necessary for RealmQuery predicates to select the specified records.
      * Because the values returned by this method will, immediately, be handed to native code, they are
-     * in coordinated arrays, not a List&lt;ColInfo&gt;
+     * in coordinated arrays, not a List&lt;ColumnDeatils&gt;
      * There are two kinds of records.  If return[1][i] is NativeObject.NULLPTR, return[0][i] contains
      * the column index for the i-th element in the dotted field description path.
-     * If return[1][i] is *not* NativeObject.NULLPTR, it is the pointer to the source table for a backlink
+     * If return[1][i] is *not* NativeObject.NULLPTR, it is a pointer to the source table for a backlink
      * and return[0][i] is the column index of the source column in that table.
+     * TODO: This method should be integrated with the class FieldDescriptor.
      *
      * @param table the starting Table: where(Table.class)
      * @param fieldDescription fieldName or link path to a field name.
@@ -119,6 +119,7 @@ public abstract class RealmSchema {
     /**
      * Parse the passed field description into its components.
      * This must be standard across implementations and is, therefore, implemented in the base class.
+     * TODO: This method should be integrated with the class FieldDescriptor.
      *
      * @param fieldDescription a field description.
      * @return the parse tree: a list of column names
@@ -145,7 +146,6 @@ public abstract class RealmSchema {
         this.columnIndices = new ColumnIndices(columnIndices, true);
     }
 
-
     /**
      * Set the column index cache for this schema.
      *
@@ -161,15 +161,14 @@ public abstract class RealmSchema {
 
     /**
      * Updates all {@link ColumnInfo} elements in {@code columnIndices}.
-     *
+     * <p>
      * The ColumnInfo elements are shared between all {@link RealmObject}s created by the Realm instance
      * which owns this RealmSchema. Updating them also means updating indices information in those {@link RealmObject}s.
      *
      * @param schemaVersion new schema version.
-     * @param mediator mediator for the Realm.
      */
-    void updateColumnIndices(ColumnIndices schemaVersion, RealmProxyMediator mediator) {
-        columnIndices.copyFrom(schemaVersion, mediator);
+    void updateColumnIndices(ColumnIndices schemaVersion) {
+        columnIndices.copyFrom(schemaVersion);
     }
 
     /**
@@ -177,6 +176,7 @@ public abstract class RealmSchema {
      * Setting the mutable flag false creates an instance that is effectively final.
      *
      * @return a new, thread-safe copy of this Schema's ColumnIndices.
+     * @see ColumnIndices for the effectively final contract.
      */
     final ColumnIndices getImmutableColumnIndicies() {
         checkIndices();
@@ -186,6 +186,11 @@ public abstract class RealmSchema {
     final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
         checkIndices();
         return columnIndices.getColumnInfo(clazz);
+    }
+
+    final ColumnInfo getColumnInfo(String className) {
+        checkIndices();
+        return columnIndices.getColumnInfo(className);
     }
 
     final long getSchemaVersion() {

@@ -108,7 +108,7 @@ class OsRealmSchema extends RealmSchema {
 
     private long nativePtr;
 
-    //FIXME!!! GBM
+    // FIXME!!! GBM
     // Because making getAll return Set<? Extends RealmObjectSchema> is a breaking change
     // Creator.getAll must return Set<RealmObjectSchema> instead of Set<? extends RealmObjectSchema>
     // That necessitates the cast inside the loop below.

@@ -109,7 +109,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      */
     @Override
     public String getClassName() {
-        return Table.getClassNameForTable(table);
+        return table.getClassName();
     }
 
     /**
@@ -584,26 +584,28 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
      * Returns the column index in the underlying table for the given field name.
      *
      * @param fieldName field name to find index for.
-     * @return column index or -1 if it doesn't exists.
-     */
-    long getFieldIndex(String fieldName) {
-        return columnInfo.getColumnIndex(fieldName);
-    }
-
-    /**
-     * Returns the column index in the underlying table for the given field name.
-     *
-     * @param fieldName field name to find index for.
      * @return column index.
      * @throws IllegalArgumentException if the field does not exists.
      */
     @Override
     long getAndCheckFieldIndex(String fieldName) {
-        long index = getFieldIndex(fieldName);
+        long index = columnInfo.getColumnIndex(fieldName);
         if (index < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
         return index;
+    }
+
+    /**
+     * Returns the column index in the underlying table for the given field name.
+     * <b>FOR TESTING USE ONLY!</b>
+     *
+     * @param fieldName field name to find index for.
+     * @return column index or -1 if it doesn't exists.
+     */
+    //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    long getFieldIndex(String fieldName) {
+        return columnInfo.getColumnIndex(fieldName);
     }
 
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
@@ -689,11 +691,11 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         }
     }
 
-
+    // FIXME!!! GBM - fix DynamicRealm
     private static final class DynamicColumnIndices extends ColumnInfo {
         private final Table table;
 
-        public DynamicColumnIndices(Table table) {
+        DynamicColumnIndices(Table table) {
             super(null, false);
             this.table = table;
         }
@@ -711,6 +713,17 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
         @Override
         protected void copy(ColumnInfo src, ColumnInfo dst) {
             throw new UnsupportedOperationException("DynamicColumnIndices cannot copy");
+        }
+    }
+
+    // Tuple containing data about each supported Java type.
+    private static class FieldMetaData {
+        final RealmFieldType realmType;
+        final boolean defaultNullable;
+
+        FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
+            this.realmType = realmType;
+            this.defaultNullable = defaultNullable;
         }
     }
 }

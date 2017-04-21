@@ -118,7 +118,7 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * WARNING: Calling this on a thread with async queries will turn those queries into synchronous queries.
      * In most cases it is better to use {@link RealmChangeListener}s to be notified about changes to the
-     * Realm on a given thread than it is to use this method. 
+     * Realm on a given thread than it is to use this method.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
      */
@@ -713,7 +713,7 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    //FIXME!! This stuff doesn't appear to be used.  It should be deleted or explained.
+    // FIXME: This stuff doesn't appear to be used.  It should be deleted or explained.
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {
         @Override
         protected RealmObjectContext initialValue() {

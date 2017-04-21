@@ -24,12 +24,16 @@ import io.realm.log.RealmLog;
 
 
 public class TableQuery implements NativeObject {
-    private static final String TAG = "TABQ";
     private static final boolean DEBUG = false;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    private final Table table;
+
+    // Note that this is *NOT* an Android Context. It is an io.realm.internal.Context.
+    // See documentation in that class for an explanation of the use
+    @SuppressWarnings("unused")
     private final Context context;
+
+    private final Table table;
     private final long nativePtr;
 
     // All actions (find(), findAll(), sum(), etc.) must call validateQuery() before performing
@@ -38,7 +42,6 @@ public class TableQuery implements NativeObject {
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    // FIXME: Either explain why we need the context, of quit holding on to it.
     public TableQuery(Context context, Table table, long nativeQueryPtr) {
         if (DEBUG) {
             RealmLog.debug("New TableQuery: ptr=%x", nativeQueryPtr);
@@ -312,10 +315,6 @@ public class TableQuery implements NativeObject {
         queryValidated = false;
         return this;
     }
-
-    // Query for String values.
-
-    private static final String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
 
     // Equals
     public TableQuery equalTo(long[] columnIndexes, long[] tablePtrs, String value, Case caseSensitive) {
@@ -773,7 +772,7 @@ public class TableQuery implements NativeObject {
 
     private native void nativeIsNull(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
-    private native void nativeIsNotNull(long nativePtr, long[] columnIndice, long[] tablePtrss);
+    private native void nativeIsNotNull(long nativePtr, long[] columnIndice, long[] tablePtr);
 
     private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
 

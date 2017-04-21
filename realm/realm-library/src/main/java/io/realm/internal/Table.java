@@ -218,13 +218,12 @@ public class Table implements TableSchema, NativeObject {
         // Renames a primary key. At this point, renaming the column name should have been fine.
         if (oldPkColumnIndex == columnIndex) {
             try {
-                String className = getClassNameForTable(this);
                 Table pkTable = getPrimaryKeyTable();
                 if (pkTable == null) {
                     throw new IllegalStateException(
                             "Table is not created from a SharedRealm, primary key is not available");
                 }
-                long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+                long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getClassName());
                 if (pkRowIndex != NO_MATCH) {
                     nativeSetString(pkTable.nativePtr, PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName, false);
                 } else {
@@ -499,7 +498,7 @@ public class Table implements TableSchema, NativeObject {
                     ") does not match the number of columns in the table (" +
                     String.valueOf(columns) + ").");
         }
-        RealmFieldType colTypes[] = new RealmFieldType[columns];
+        RealmFieldType[] colTypes = new RealmFieldType[columns];
         for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
             Object value = values[columnIndex];
             RealmFieldType colType = getColumnType(columnIndex);
@@ -586,8 +585,7 @@ public class Table implements TableSchema, NativeObject {
                 return NO_PRIMARY_KEY; // Free table = No primary key.
             }
 
-            String className = getClassNameForTable(this);
-            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getClassName());
             if (rowIndex != NO_MATCH) {
                 String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
@@ -1172,10 +1170,6 @@ public class Table implements TableSchema, NativeObject {
      */
     public long getVersion() {
         return nativeVersion(nativePtr);
-    }
-
-    public static String getClassNameForTable(Table table) {
-        return (table == null) ? null : getClassNameForTable(table.getName());
     }
 
     public static String getClassNameForTable(String name) {

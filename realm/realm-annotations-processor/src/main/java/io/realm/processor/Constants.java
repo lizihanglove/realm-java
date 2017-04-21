@@ -43,35 +43,27 @@ public class Constants {
      * Realm types and their corresponding Java types
      */
     public enum RealmFieldType {
-        INTEGER("Long", "INTEGER"),
-        FLOAT("Float", "FLOAT"),
-        DOUBLE("Double", "DOUBLE"),
-        BOOLEAN("Boolean", "BOOLEAN"),
-        STRING("String", "STRING"),
-        DATE("Date", "DATE"),
-        BINARY("BinaryByteArray", "BINARY"),
-        OBJECT("Object", "OBJECT"),
-        LIST("List", "LIST"),
-        BACKLINK(null, "BACKLINK");
+        INTEGER("INTEGER", "Long"),
+        FLOAT("FLOAT", "Float"),
+        DOUBLE("DOUBLE", "Double"),
+        BOOLEAN("BOOLEAN", "Boolean"),
+        STRING("STRING", "String"),
+        DATE("DATE", "Date"),
+        BINARY("BINARY", "BinaryByteArray"),
+        OBJECT("OBJECT", "Object"),
+        LIST("LIST", "List"),
+        BACKLINK("BACKLINK", null);
 
-        private final String javaType;
         private final String realmType;
+        private final String javaType;
 
         /**
-         * @param javaType The simple name of the Java type needed to store this Realm Type
          * @param realmType The simple name of the Enum type used in the Java bindings, to represent this type.
+         * @param javaType The simple name of the Java type needed to store this Realm Type
          */
-        RealmFieldType(String javaType, String realmType) {
-            this.javaType = javaType;
+        RealmFieldType(String realmType, String javaType) {
             this.realmType = "RealmFieldType." + realmType;
-        }
-
-        /**
-         * Get the name of the Java type needed to store this Realm Type
-         * @return the simple name for the corresponding Java type
-         */
-        public String getJavaType() {
-            return javaType;
+            this.javaType = javaType;
         }
 
         /**
@@ -80,6 +72,14 @@ public class Constants {
          */
         public String getRealmType() {
             return realmType;
+        }
+
+        /**
+         * Get the name of the Java type needed to store this Realm Type
+         * @return the simple name for the corresponding Java type
+         */
+        public String getJavaType() {
+            return javaType;
         }
     }
 
