@@ -7,6 +7,7 @@ import io.realm.internal.Capabilities;
 import io.realm.internal.Keep;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
+import io.realm.log.RealmLog;
 
 
 /**
@@ -27,6 +28,7 @@ public class AndroidRealmNotifier extends RealmNotifier {
 
     @Override
     public boolean post(Runnable runnable) {
+        RealmLog.error("RRRRR + " + handler);
         return handler != null && handler.post(runnable);
     }
 }

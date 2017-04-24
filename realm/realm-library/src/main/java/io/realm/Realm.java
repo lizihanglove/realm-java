@@ -126,6 +126,9 @@ import rx.Observable;
  */
 public class Realm extends BaseRealm {
 
+    private static final String NULL_CONFIG_MSG = "A non-null RealmConfiguration must be provided";
+
+
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
     private static RealmConfiguration defaultConfiguration;
@@ -211,6 +214,13 @@ public class Realm extends BaseRealm {
         return RealmCache.createRealmOrGetFromCache(defaultConfiguration, Realm.class);
     }
 
+    public static RealmAsyncTask getDefaultInstanceAsync(RealmInstanceCallback<Realm> callback) {
+        if (defaultConfiguration == null) {
+            throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
+        }
+        return RealmCache.createRealmOrGetFromCacheAsync(defaultConfiguration, callback, Realm.class);
+    }
+
     /**
      * Realm static constructor that returns the Realm instance defined by provided {@link io.realm.RealmConfiguration}
      *
@@ -224,9 +234,17 @@ public class Realm extends BaseRealm {
      */
     public static Realm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
-            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
+            throw new IllegalArgumentException(NULL_CONFIG_MSG);
         }
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
+    }
+
+    public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
+                                                  RealmInstanceCallback<Realm> callback) {
+        if (configuration == null) {
+            throw new IllegalArgumentException(NULL_CONFIG_MSG);
+        }
+        return RealmCache.createRealmOrGetFromCacheAsync(configuration, callback, Realm.class);
     }
 
     /**

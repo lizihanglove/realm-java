@@ -28,10 +28,13 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -44,6 +47,8 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class RealmCacheTests {
 
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -292,5 +297,120 @@ public class RealmCacheTests {
         assertNull(realmA.sharedRealm);
         RealmCache.release(dynamicRealmA);
         assertNull(realmA.sharedRealm);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_typedRealm() {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        Realm.getInstanceAsync(configuration, new RealmInstanceCallback<Realm>() {
+            @Override
+            public void onSuccess(Realm realm) {
+                realmCreated.set(true);
+                //assertEquals(2, Realm.getGlobalInstanceCount(configuration));
+                assertEquals(1, Realm.getLocalInstanceCount(configuration));
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+        assertFalse(realmCreated.get());
+        assertEquals(0, Realm.getLocalInstanceCount(configuration));
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_dynamicRealm() {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        DynamicRealm.getInstanceAsync(configuration, new RealmInstanceCallback<DynamicRealm>() {
+            @Override
+            public void onSuccess(DynamicRealm realm) {
+                realmCreated.set(true);
+                assertEquals(2, Realm.getGlobalInstanceCount(configuration));
+                assertEquals(1, Realm.getLocalInstanceCount(configuration));
+                realm.close();
+                assertTrue(realm.isClosed());
+                looperThread.testComplete();
+            }
+        });
+        assertFalse(realmCreated.get());
+        assertEquals(0, Realm.getLocalInstanceCount(configuration));
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_callbackImmediatelyWhenLocalCacheExist() {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        Realm realm = Realm.getInstance(configuration);
+        Realm.getInstanceAsync(configuration, new RealmInstanceCallback<Realm>() {
+            @Override
+            public void onSuccess(Realm realm) {
+                realmCreated.set(true);
+                assertEquals(1, Realm.getGlobalInstanceCount(configuration));
+                assertEquals(2, Realm.getLocalInstanceCount(configuration));
+                realm.close();
+            }
+        });
+        assertTrue(realmCreated.get());
+        realm.close();
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_callbackImmediatelyWhenGlobalCacheExist() throws InterruptedException {
+        final RealmConfiguration configuration = looperThread.createConfiguration();
+        final AtomicBoolean realmCreated = new AtomicBoolean(false);
+        final CountDownLatch globalRealmCreated = new CountDownLatch(1);
+        final CountDownLatch getAsyncFinishedLatch = new CountDownLatch(1);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(configuration);
+                globalRealmCreated.countDown();
+                TestHelper.awaitOrFail(getAsyncFinishedLatch);
+                realm.close();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(globalRealmCreated);
+        Realm.getInstanceAsync(configuration, new RealmInstanceCallback<Realm>() {
+            @Override
+            public void onSuccess(Realm realm) {
+                realmCreated.set(true);
+                assertEquals(2, Realm.getGlobalInstanceCount(configuration));
+                assertEquals(1, Realm.getLocalInstanceCount(configuration));
+                realm.close();
+            }
+        });
+        assertTrue(realmCreated.get());
+        getAsyncFinishedLatch.countDown();
+        thread.join();
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void getInstanceAsync_onError() {
+        final RealmConfiguration configuration =
+                looperThread.createConfigurationBuilder()
+                .assetFile("NotExistingFile")
+                .build();
+        Realm.getInstanceAsync(configuration, new RealmInstanceCallback<Realm>() {
+            @Override
+            public void onSuccess(Realm realm) {
+                fail();
+            }
+
+            @Override
+            public void onError(RuntimeException exception) {
+                assertTrue(exception instanceof RealmFileException);
+                looperThread.testComplete();
+            }
+        });
     }
 }

@@ -66,6 +66,14 @@ public class DynamicRealm extends BaseRealm {
         return RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class);
     }
 
+    public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
+                                                  RealmInstanceCallback<DynamicRealm> callback) {
+        if (configuration == null) {
+            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
+        }
+        return RealmCache.createRealmOrGetFromCacheAsync(configuration, callback, DynamicRealm.class);
+    }
+
     /**
      * Instantiates and adds a new object to the Realm.
      *

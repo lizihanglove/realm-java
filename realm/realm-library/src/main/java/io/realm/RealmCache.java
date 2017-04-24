@@ -23,12 +23,20 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.exceptions.RealmFileException;
+import io.realm.internal.Capabilities;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.android.AndroidRealmNotifier;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 
 
@@ -98,6 +106,96 @@ final class RealmCache {
         }
     }
 
+    private static class CreateRealmRunnable<T extends BaseRealm> implements Runnable {
+        private RealmConfiguration configuration;
+        private RealmInstanceCallback<T> callback;
+        private Class<T> realmClass;
+        private CountDownLatch fgRealmCreatedLatch = new CountDownLatch(1);
+        private RealmNotifier notifier;
+
+        CreateRealmRunnable(RealmNotifier notifier, RealmConfiguration configuration,
+                            RealmInstanceCallback<T> callback, Class<T> realmClass) {
+            this.configuration = configuration;
+            this.realmClass = realmClass;
+            this.callback = callback;
+            this.notifier = notifier;
+        }
+
+        @Override
+        public void run() {
+            T instance = null;
+            try {
+                instance = createRealmOrGetFromCache(configuration, realmClass);
+                boolean results = notifier.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        T instanceToReturn = null;
+                        try {
+                            instanceToReturn = createRealmOrGetFromCache(configuration, realmClass);
+                        }catch (RuntimeException e) {
+                            callback.onError(e);
+                        } finally {
+                            fgRealmCreatedLatch.countDown();
+                        }
+                        if (instanceToReturn != null) {
+                            callback.onSuccess(instanceToReturn);
+                        }
+                    }
+                });
+                if (!results) {
+                    fgRealmCreatedLatch.countDown();
+                }
+                fgRealmCreatedLatch.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                RealmLog.warn(e, "`CreateRealmRunnable` has been interrupted.");
+            } catch (final RuntimeException e) {
+                RealmLog.error(e, "`CreateRealmRunnable` failed.");
+                notifier.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(e);
+                    }
+                });
+            } finally {
+                if (instance != null) {
+                    instance.close();
+                }
+            }
+        }
+    }
+
+    static <T extends BaseRealm> RealmAsyncTask createRealmOrGetFromCacheAsync(
+            RealmConfiguration configuration, RealmInstanceCallback<T> callback, Class<T> realmClass) {
+
+        T realm;
+        synchronized (RealmCache.class) {
+            RealmCache cache = cachesMap.get(configuration.getPath());
+            if (cache == null) {
+                Capabilities capabilities = new AndroidCapabilities();
+                CreateRealmRunnable<T> createRealmRunnable = new CreateRealmRunnable<T>(
+                        new AndroidRealmNotifier(null, capabilities), configuration, callback, realmClass);
+                Future<?> future = BaseRealm.asyncTaskExecutor.submitTransaction(createRealmRunnable);
+
+                return new RealmAsyncTaskImpl(future, BaseRealm.asyncTaskExecutor);
+            }
+
+            realm = doCreateRealmOrGetFromCache(configuration, realmClass, cache);
+        }
+
+        callback.onSuccess(realm);
+
+        return new RealmAsyncTask() {
+            @Override
+            public void cancel() {
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+        };
+    }
+
     /**
      * Creates a new Realm instance or get an existing instance for current thread.
      *
@@ -105,10 +203,16 @@ final class RealmCache {
      * @param realmClass class of {@link Realm} or {@link DynamicRealm} to be created in or gotten from the cache.
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
-    static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
-            Class<E> realmClass) {
-        boolean isCacheInMap = true;
+
+    static synchronized <T extends BaseRealm> T createRealmOrGetFromCache(RealmConfiguration configuration,
+                                                                          Class<T> realmClass) {
         RealmCache cache = cachesMap.get(configuration.getPath());
+        return doCreateRealmOrGetFromCache(configuration, realmClass, cache);
+    }
+
+    private static <T extends BaseRealm> T doCreateRealmOrGetFromCache(RealmConfiguration configuration,
+                                                                       Class<T> realmClass, RealmCache cache) {
+        boolean isCacheInMap = true;
         if (cache == null) {
             // Creates a new cache.
             cache = new RealmCache(configuration);
@@ -171,10 +275,8 @@ final class RealmCache {
         }
         refAndCount.localCount.set(refCount + 1);
 
-        @SuppressWarnings("unchecked")
-        E realm = (E) refAndCount.localRealm.get();
-
-        return realm;
+        //noinspection unchecked
+        return (T) refAndCount.localRealm.get();
     }
 
     /**
@@ -414,7 +516,7 @@ final class RealmCache {
      * @param schemaVersion requested version of the schema.
      * @return {@link ColumnIndices} instance for specified schema version. {@code null} if not found.
      */
-    public static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
+    static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
         for (int i = array.length - 1; 0 <= i; i--) {
             final ColumnIndices candidate = array[i];
             if (candidate != null && candidate.getSchemaVersion() == schemaVersion) {

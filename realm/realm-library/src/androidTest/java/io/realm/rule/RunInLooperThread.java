@@ -76,6 +76,11 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     @Override
     protected void after() {
         super.after();
+
+        // Waits all async tasks done to ensure successful deleteRealm call.
+        // This will throw when timeout. And the reason of timeout needs to be solved properly.
+        TestHelper.waitRealmThreadExecutorFinish();
+
         realmConfiguration = null;
         realm = null;
         testRealms.clear();
