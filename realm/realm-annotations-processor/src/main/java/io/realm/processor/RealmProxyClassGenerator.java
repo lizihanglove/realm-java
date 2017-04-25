@@ -158,7 +158,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("super(%s)", metadata.getFields().size());
         for (VariableElement field : metadata.getFields()) {
             writer.emitStatement(
-                    "this.%1$sIndex = addColumnDetails(realm, table, \"%1$s\", %2$s)",
+                    "this.%1$sIndex = addColumnDetails(table, \"%1$s\", %2$s)",
                     field.getSimpleName().toString(), getRealmType(field).getRealmType());
         }
         for (Backlink backlink : metadata.getBacklinkFields()) {

@@ -44,15 +44,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         AllTypesColumnInfo(SharedRealm realm, Table table) {
             super(9);
-            this.columnStringIndex = addColumnDetails(realm, table, "columnString", RealmFieldType.STRING);
-            this.columnLongIndex = addColumnDetails(realm, table, "columnLong", RealmFieldType.INTEGER);
-            this.columnFloatIndex = addColumnDetails(realm, table, "columnFloat", RealmFieldType.FLOAT);
-            this.columnDoubleIndex = addColumnDetails(realm, table, "columnDouble", RealmFieldType.DOUBLE);
-            this.columnBooleanIndex = addColumnDetails(realm, table, "columnBoolean", RealmFieldType.BOOLEAN);
-            this.columnDateIndex = addColumnDetails(realm, table, "columnDate", RealmFieldType.DATE);
-            this.columnBinaryIndex = addColumnDetails(realm, table, "columnBinary", RealmFieldType.BINARY);
-            this.columnObjectIndex = addColumnDetails(realm, table, "columnObject", RealmFieldType.OBJECT);
-            this.columnRealmListIndex = addColumnDetails(realm, table, "columnRealmList", RealmFieldType.LIST);
+            this.columnStringIndex = addColumnDetails(table, "columnString", RealmFieldType.STRING);
+            this.columnLongIndex = addColumnDetails(table, "columnLong", RealmFieldType.INTEGER);
+            this.columnFloatIndex = addColumnDetails(table, "columnFloat", RealmFieldType.FLOAT);
+            this.columnDoubleIndex = addColumnDetails(table, "columnDouble", RealmFieldType.DOUBLE);
+            this.columnBooleanIndex = addColumnDetails(table, "columnBoolean", RealmFieldType.BOOLEAN);
+            this.columnDateIndex = addColumnDetails(table, "columnDate", RealmFieldType.DATE);
+            this.columnBinaryIndex = addColumnDetails(table, "columnBinary", RealmFieldType.BINARY);
+            this.columnObjectIndex = addColumnDetails(table, "columnObject", RealmFieldType.OBJECT);
+            this.columnRealmListIndex = addColumnDetails(table, "columnRealmList", RealmFieldType.LIST);
             addBacklinkDetails(realm, "parentObjects", "AllTypes", "columnObject");
         }
 

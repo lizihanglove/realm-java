@@ -272,35 +272,31 @@ class StandardRealmSchema extends RealmSchema {
 
     /**
      * @inheritDoc
+     *
+     * I suspect that choosing the parsing strategy based on whether there is a ref to a ColumnIndices
+     * around or not, is bad architecture.  Almost certainly, there should be a schema that has
+     * ColumnIndices and one that does not and the strategies below should belong to the first
+     * and second, respectively.  --gbm
+     *
      */
     @Override
     long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
+        return (haveColumnInfo())
+                ? getColumnIndicesCached(table.getClassName(), fieldDescription, validColumnTypes)
+                : getColumnIndicesDynamic(table, fieldDescription, validColumnTypes);
+    }
+
+    private long[][] getColumnIndicesCached(String tableName, String fieldDescription, RealmFieldType... validColumnTypes) {
         List<String> fields = parseFieldDescription(fieldDescription);
         int nFields = fields.size();
         if (nFields <= 0) {
-            throw new IllegalArgumentException("Empty field description");
+            throw new IllegalArgumentException("Invalid query: Empty field descriptor");
         }
 
         long[][] columnInfo = new long[2][];
         columnInfo[0] = new long[nFields];
         columnInfo[1] = new long[nFields];
 
-        try {
-            // When there is no cache revert to legacy parser.
-            if (haveColumnInfo()) {
-                getColumnIndicesCached(table.getClassName(), fields, columnInfo, validColumnTypes);
-            } else {
-                getColumnIndicesDynamic(table, fields, columnInfo, validColumnTypes);
-            }
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid query '" + fieldDescription + "': " + e.getMessage());
-        }
-
-        return columnInfo;
-    }
-
-    private void getColumnIndicesCached(String tableName, List<String> fields, long[][] columnInfo, RealmFieldType... validColumnTypes) {
-        int nFields = fields.size();
         String currentTable = tableName;
 
         ColumnInfo tableInfo;
@@ -311,19 +307,19 @@ class StandardRealmSchema extends RealmSchema {
             columnName = fields.get(i);
             if ((columnName == null) || (columnName.length() <= 0)) {
                 throw new IllegalArgumentException(
-                        "empty field.  A field description may not begin with or contain adjacent periods ('.').");
+                        "Invalid query: Field descriptor contains an empty field.  A field description may not begin with or contain adjacent periods ('.').");
             }
 
             tableInfo = getColumnInfo(currentTable);
             if (tableInfo == null) {
                 throw new IllegalArgumentException(
-                        String.format("table '%s' not found in this schema.", currentTable));
+                        String.format("Invalid query: table '%s' not found in this schema.", currentTable));
             }
 
             columnIndex = tableInfo.getColumnIndex(columnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format("field '%s' not found in table '%s'.", columnName, currentTable));
+                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
             }
 
             columnType = tableInfo.getColumnType(columnName);
@@ -340,11 +336,22 @@ class StandardRealmSchema extends RealmSchema {
         }
 
         verifyColumnType(tableName, columnName, columnType, validColumnTypes);
+
+        return columnInfo;
     }
 
     // Backlinks are not supported here.
-    private void getColumnIndicesDynamic(Table table, List<String> fields, long[][] columnInfo, RealmFieldType... validColumnTypes) {
+    private long[][] getColumnIndicesDynamic(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
+        List<String> fields = parseFieldDescription(fieldDescription);
         int nFields = fields.size();
+        if (nFields <= 0) {
+            throw new IllegalArgumentException("Invalid query: Empty field descriptor");
+        }
+
+        long[][] columnInfo = new long[2][];
+        columnInfo[0] = new long[nFields];
+        columnInfo[1] = new long[nFields];
+
         Table currentTable = table;
 
         String tableName = null;
@@ -355,15 +362,16 @@ class StandardRealmSchema extends RealmSchema {
             columnName = fields.get(i);
             if ((columnName == null) || (columnName.length() <= 0)) {
                 throw new IllegalArgumentException(
-                        "empty field.  A field description may not begin with or contain adjacent periods ('.').");
+                        "Invalid query: Field descriptor contains an empty field.  A field description may not begin with or contain adjacent periods ('.').");
             }
+            // "Invalid query:  field descriptor '" + fieldDescription + "': "
 
             tableName = currentTable.getClassName();
 
             columnIndex = currentTable.getColumnIndex(columnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format("field '%s' not found in table '%s'.", columnName, tableName));
+                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
             }
 
             columnType = currentTable.getColumnType(columnIndex);
@@ -378,6 +386,8 @@ class StandardRealmSchema extends RealmSchema {
         }
 
         verifyColumnType(tableName, columnName, columnType, validColumnTypes);
+
+        return columnInfo;
     }
 
     private void verifyColumnType(String tableName, String columnName, RealmFieldType columnType, RealmFieldType... validColumnTypes) {
@@ -392,7 +402,7 @@ class StandardRealmSchema extends RealmSchema {
         }
 
         throw new IllegalArgumentException(String.format(
-                "field '%s' in table '%s' is of invalid type '%s'.",
+                "Invalid query: field '%s' in table '%s' is of invalid type '%s'.",
                 columnName, tableName, columnType.toString()));
     }
 

@@ -908,8 +908,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                             : proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName());
                     break;
                 case LIST:
-                    String tableClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
-                    sb.append(String.format("RealmList<%s>[%s]", tableClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
+                    String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getClassName();
+                    sb.append(String.format("RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getLinkList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:

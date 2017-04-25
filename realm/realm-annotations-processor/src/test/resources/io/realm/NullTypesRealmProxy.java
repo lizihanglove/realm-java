@@ -56,27 +56,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
         NullTypesColumnInfo(SharedRealm realm, Table table) {
             super(21);
-            this.fieldStringNotNullIndex = addColumnDetails(realm, table, "fieldStringNotNull", RealmFieldType.STRING);
-            this.fieldStringNullIndex = addColumnDetails(realm, table, "fieldStringNull", RealmFieldType.STRING);
-            this.fieldBooleanNotNullIndex = addColumnDetails(realm, table, "fieldBooleanNotNull", RealmFieldType.BOOLEAN);
-            this.fieldBooleanNullIndex = addColumnDetails(realm, table, "fieldBooleanNull", RealmFieldType.BOOLEAN);
-            this.fieldBytesNotNullIndex = addColumnDetails(realm, table, "fieldBytesNotNull", RealmFieldType.BINARY);
-            this.fieldBytesNullIndex = addColumnDetails(realm, table, "fieldBytesNull", RealmFieldType.BINARY);
-            this.fieldByteNotNullIndex = addColumnDetails(realm, table, "fieldByteNotNull", RealmFieldType.INTEGER);
-            this.fieldByteNullIndex = addColumnDetails(realm, table, "fieldByteNull", RealmFieldType.INTEGER);
-            this.fieldShortNotNullIndex = addColumnDetails(realm, table, "fieldShortNotNull", RealmFieldType.INTEGER);
-            this.fieldShortNullIndex = addColumnDetails(realm, table, "fieldShortNull", RealmFieldType.INTEGER);
-            this.fieldIntegerNotNullIndex = addColumnDetails(realm, table, "fieldIntegerNotNull", RealmFieldType.INTEGER);
-            this.fieldIntegerNullIndex = addColumnDetails(realm, table, "fieldIntegerNull", RealmFieldType.INTEGER);
-            this.fieldLongNotNullIndex = addColumnDetails(realm, table, "fieldLongNotNull", RealmFieldType.INTEGER);
-            this.fieldLongNullIndex = addColumnDetails(realm, table, "fieldLongNull", RealmFieldType.INTEGER);
-            this.fieldFloatNotNullIndex = addColumnDetails(realm, table, "fieldFloatNotNull", RealmFieldType.FLOAT);
-            this.fieldFloatNullIndex = addColumnDetails(realm, table, "fieldFloatNull", RealmFieldType.FLOAT);
-            this.fieldDoubleNotNullIndex = addColumnDetails(realm, table, "fieldDoubleNotNull", RealmFieldType.DOUBLE);
-            this.fieldDoubleNullIndex = addColumnDetails(realm, table, "fieldDoubleNull", RealmFieldType.DOUBLE);
-            this.fieldDateNotNullIndex = addColumnDetails(realm, table, "fieldDateNotNull", RealmFieldType.DATE);
-            this.fieldDateNullIndex = addColumnDetails(realm, table, "fieldDateNull", RealmFieldType.DATE);
-            this.fieldObjectNullIndex = addColumnDetails(realm, table, "fieldObjectNull", RealmFieldType.OBJECT);
+            this.fieldStringNotNullIndex = addColumnDetails(table, "fieldStringNotNull", RealmFieldType.STRING);
+            this.fieldStringNullIndex = addColumnDetails(table, "fieldStringNull", RealmFieldType.STRING);
+            this.fieldBooleanNotNullIndex = addColumnDetails(table, "fieldBooleanNotNull", RealmFieldType.BOOLEAN);
+            this.fieldBooleanNullIndex = addColumnDetails(table, "fieldBooleanNull", RealmFieldType.BOOLEAN);
+            this.fieldBytesNotNullIndex = addColumnDetails(table, "fieldBytesNotNull", RealmFieldType.BINARY);
+            this.fieldBytesNullIndex = addColumnDetails(table, "fieldBytesNull", RealmFieldType.BINARY);
+            this.fieldByteNotNullIndex = addColumnDetails(table, "fieldByteNotNull", RealmFieldType.INTEGER);
+            this.fieldByteNullIndex = addColumnDetails(table, "fieldByteNull", RealmFieldType.INTEGER);
+            this.fieldShortNotNullIndex = addColumnDetails(table, "fieldShortNotNull", RealmFieldType.INTEGER);
+            this.fieldShortNullIndex = addColumnDetails(table, "fieldShortNull", RealmFieldType.INTEGER);
+            this.fieldIntegerNotNullIndex = addColumnDetails(table, "fieldIntegerNotNull", RealmFieldType.INTEGER);
+            this.fieldIntegerNullIndex = addColumnDetails(table, "fieldIntegerNull", RealmFieldType.INTEGER);
+            this.fieldLongNotNullIndex = addColumnDetails(table, "fieldLongNotNull", RealmFieldType.INTEGER);
+            this.fieldLongNullIndex = addColumnDetails(table, "fieldLongNull", RealmFieldType.INTEGER);
+            this.fieldFloatNotNullIndex = addColumnDetails(table, "fieldFloatNotNull", RealmFieldType.FLOAT);
+            this.fieldFloatNullIndex = addColumnDetails(table, "fieldFloatNull", RealmFieldType.FLOAT);
+            this.fieldDoubleNotNullIndex = addColumnDetails(table, "fieldDoubleNotNull", RealmFieldType.DOUBLE);
+            this.fieldDoubleNullIndex = addColumnDetails(table, "fieldDoubleNull", RealmFieldType.DOUBLE);
+            this.fieldDateNotNullIndex = addColumnDetails(table, "fieldDateNotNull", RealmFieldType.DATE);
+            this.fieldDateNullIndex = addColumnDetails(table, "fieldDateNull", RealmFieldType.DATE);
+            this.fieldObjectNullIndex = addColumnDetails(table, "fieldObjectNull", RealmFieldType.OBJECT);
         }
 
         NullTypesColumnInfo(ColumnInfo src, boolean mutable) {

@@ -717,7 +717,7 @@ class StandardRealmObjectSchema extends RealmObjectSchema {
     }
 
     // Tuple containing data about each supported Java type.
-    private static class FieldMetaData {
+    private static final class FieldMetaData {
         final RealmFieldType realmType;
         final boolean defaultNullable;
 

@@ -209,37 +209,27 @@ public abstract class ColumnInfo {
 
     /**
      * Add a new column to the indexMap.
-     * <b>For use only by subclasses!</b>.
+     * <p>
+     * <b>For use only in subclass constructors!</b>.
      * Must be called from within the subclass constructor, to maintain the effectively-final contract.
+     * <p>
+     * No validation done here.  Presuming that all necessary validation takes place in {@code Proxy.validateTable}.
      *
-     * @param realm The shared realm.
      * @param table The table to search for the column.
      * @param columnName The name of the column whose index is sought.
      * @param columnType Type RealmType of the column.
      * @return the index of the column in the table
      */
     @SuppressWarnings("unused")
-    protected final long addColumnDetails(SharedRealm realm, Table table, String columnName, RealmFieldType columnType) {
+    protected final long addColumnDetails(Table table, String columnName, RealmFieldType columnType) {
         long columnIndex = table.getColumnIndex(columnName);
-        if (columnIndex < 0) {
-            throw new RealmMigrationNeededException(
-                    realm.getPath(),
-                    "Field '" + columnName + "' not found for type " + table.getClassName());
+        if (columnIndex >= 0) {
+            String linkedTableName = ((columnType != RealmFieldType.OBJECT) && (columnType != RealmFieldType.LIST))
+                    ? null
+                    : table.getLinkTarget(columnIndex).getClassName();
+
+            indicesMap.put(columnName, new ColumnDetails(columnIndex, columnType, linkedTableName));
         }
-
-        // FIXME!!! GBM - expensive and unnecessary?
-        RealmFieldType actualColumnType = table.getColumnType(columnIndex);
-        if (actualColumnType != columnType) {
-            throw new RealmMigrationNeededException(
-                    realm.getPath(),
-                    "Field '" + columnName + "': expected type " + columnType + "but found " + actualColumnType);
-        }
-
-        String linkedTableName = ((columnType != RealmFieldType.OBJECT) && (columnType != RealmFieldType.LIST))
-                ? null
-                : table.getLinkTarget(columnIndex).getClassName();
-
-        indicesMap.put(columnName, new ColumnDetails(columnIndex, columnType, linkedTableName));
 
         return columnIndex;
     }

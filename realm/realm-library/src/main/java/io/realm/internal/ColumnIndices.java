@@ -40,7 +40,7 @@ public final class ColumnIndices {
     private long schemaVersion;
 
     /**
-     * Create a mutable ColumnIndices containing the ColumnInfo objects in the passed map
+     * Create a mutable ColumnIndices containing the ColumnInfo objects in the passed map.
      *
      * @param schemaVersion the schema version
      * @param classes a map of table classes to their column info
@@ -51,7 +51,7 @@ public final class ColumnIndices {
     }
 
     /**
-     * Create a copy of the passed ColumnIndices
+     * Create a copy of the passed ColumnIndices.
      *
      * @param other the ColumnIndices object to copy
      * @param mutable if false the object is effectively final.
