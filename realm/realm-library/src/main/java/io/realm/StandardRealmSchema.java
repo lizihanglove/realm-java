@@ -253,6 +253,7 @@ class StandardRealmSchema extends RealmSchema {
             // 'clazz' is the proxy class for 'originalClass'.
             classToSchema.put(clazz, classSchema);
         }
+
         return classSchema;
     }
 
