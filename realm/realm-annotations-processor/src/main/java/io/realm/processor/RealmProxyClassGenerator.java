@@ -159,7 +159,7 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             writer.emitStatement(
                     "this.%1$sIndex = addColumnDetails(table, \"%1$s\", %2$s)",
-                    field.getSimpleName().toString(), getRealmType(field).getRealmType());
+                    field.getSimpleName().toString(), getRealmTypeChecked(field).getRealmType());
         }
         for (Backlink backlink : metadata.getBacklinkFields()) {
             writer.emitStatement(
@@ -277,7 +277,7 @@ public class RealmProxyClassGenerator {
             final String fieldName,
             String fieldTypeCanonicalName) throws IOException {
 
-        final String fieldJavaType = getRealmType(field).getJavaType();
+        final String fieldJavaType = getRealmTypeChecked(field).getJavaType();
 
         // Getter
         //@formatter:off
@@ -603,9 +603,12 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
-            // FIXME!!! GBM - This throws on unrecognized type.  The code it replaces just ignores it.
             Constants.RealmFieldType fieldType = getRealmType(field);
             switch (fieldType) {
+                case NOTYPE:
+                    // Perhaps this should fail quickly?
+                    break;
+
                 case OBJECT:
                     writer.beginControlFlow("if (!realmSchema.contains(\"" + fieldTypeSimpleName + "\"))")
                             .emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX)
@@ -755,7 +758,7 @@ public class RealmProxyClassGenerator {
                 "\")", fieldName);
         writer.endControlFlow();
         writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)",
-                fieldName, getRealmType(field).getRealmType());
+                fieldName, getRealmTypeChecked(field).getRealmType());
         emitMigrationNeededException(writer, "\"Invalid type '%s' for field '%s' in existing Realm file.\")",
                 Utils.getFieldTypeSimpleName(field), fieldName);
         writer.endControlFlow();
@@ -2060,9 +2063,9 @@ public class RealmProxyClassGenerator {
 
     private Constants.RealmFieldType getRealmType(VariableElement field) {
         String fieldTypeCanonicalName = field.asType().toString();
-        Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
-        if (realmType != null) {
-            return realmType;
+        Constants.RealmFieldType type = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
+        if (type != null) {
+            return type;
         }
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT;
@@ -2070,6 +2073,14 @@ public class RealmProxyClassGenerator {
         if (Utils.isRealmList(field)) {
             return Constants.RealmFieldType.LIST;
         }
-        throw new IllegalStateException("Unsupported type " + fieldTypeCanonicalName);
+        return Constants.RealmFieldType.NOTYPE;
+    }
+
+    private Constants.RealmFieldType getRealmTypeChecked(VariableElement field) {
+        Constants.RealmFieldType type = getRealmType(field);
+        if (type == Constants.RealmFieldType.NOTYPE) {
+            throw new IllegalStateException("Unsupported type " + field.asType().toString());
+        }
+        return type;
     }
 }

@@ -43,6 +43,7 @@ public class Constants {
      * Realm types and their corresponding Java types
      */
     public enum RealmFieldType {
+        NOTYPE(null, "Void"),
         INTEGER("INTEGER", "Long"),
         FLOAT("FLOAT", "Float"),
         DOUBLE("DOUBLE", "Double"),

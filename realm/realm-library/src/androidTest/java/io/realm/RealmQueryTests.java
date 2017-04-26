@@ -2907,7 +2907,8 @@ public class RealmQueryTests {
     private static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES = Arrays.asList(
             RealmFieldType.STRING,
             RealmFieldType.BINARY,
-            RealmFieldType.LIST);
+            RealmFieldType.LIST,
+            RealmFieldType.LINKING_OBJECTS);
 
     private static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
 
@@ -2917,7 +2918,6 @@ public class RealmQueryTests {
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
         list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        list.remove(RealmFieldType.LINKING_OBJECTS); // FIXME!!! GBM
         NOT_SUPPORTED_IS_EMPTY_TYPES = list;
     }
 
@@ -2957,6 +2957,9 @@ public class RealmQueryTests {
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LIST).count());
                     break;
+                case LINKING_OBJECTS:
+                    // FIXME!!! GBM - write test;
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -2976,6 +2979,9 @@ public class RealmQueryTests {
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    // FIXME!!! GBM - write test;
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -3032,7 +3038,8 @@ public class RealmQueryTests {
     private static final List<RealmFieldType> SUPPORTED_IS_NOT_EMPTY_TYPES = Arrays.asList(
             RealmFieldType.STRING,
             RealmFieldType.BINARY,
-            RealmFieldType.LIST);
+            RealmFieldType.LIST,
+            RealmFieldType.LINKING_OBJECTS);
 
     private static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
 
@@ -3042,7 +3049,6 @@ public class RealmQueryTests {
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
         list.remove(RealmFieldType.UNSUPPORTED_DATE);
-        list.remove(RealmFieldType.LINKING_OBJECTS); // FIXME!!! GBM
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
     }
 
@@ -3082,6 +3088,9 @@ public class RealmQueryTests {
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LIST).count());
                     break;
+                case LINKING_OBJECTS:
+                    // FIXME!!! GBM - write test;
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -3101,6 +3110,9 @@ public class RealmQueryTests {
                     break;
                 case LIST:
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                case LINKING_OBJECTS:
+                    // FIXME!!! GBM - write test;
                     break;
                 default:
                     fail("Unknown type: " + type);

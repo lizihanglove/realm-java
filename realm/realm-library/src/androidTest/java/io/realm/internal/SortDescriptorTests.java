@@ -238,17 +238,22 @@ public class SortDescriptorTests {
     private List<RealmFieldType> getValidFieldTypes(List<RealmFieldType> filter) {
         List<RealmFieldType> types = new ArrayList<>();
         for (RealmFieldType type : RealmFieldType.values()) {
-            if (!filter.contains(type) &&
-                    type != RealmFieldType.LINKING_OBJECTS && //FIXME!!! GBM
-                    type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE &&
-                    type != RealmFieldType.UNSUPPORTED_MIXED) {
-                if ((type != RealmFieldType.LIST) && (type != RealmFieldType.OBJECT)) {
-                    table.addColumn(type, type.name());
-                } else {
-                    table.addColumnLink(type, type.name(), table);
+            if (!filter.contains(type)) {
+                switch (type) {
+                    case UNSUPPORTED_DATE:
+                    case UNSUPPORTED_TABLE:
+                    case UNSUPPORTED_MIXED:
+                    case LINKING_OBJECTS: // TODO: should be supported?s
+                        break;
+                    case LIST:
+                    case OBJECT:
+                        table.addColumnLink(type, type.name(), table);
+                        types.add(type);
+                        break;
+                    default:
+                        table.addColumn(type, type.name());
+                        types.add(type);
                 }
-                types.add(type);
             }
         }
         return types;

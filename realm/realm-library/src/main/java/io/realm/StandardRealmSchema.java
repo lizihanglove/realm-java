@@ -372,7 +372,7 @@ class StandardRealmSchema extends RealmSchema {
             columnIndex = currentTable.getColumnIndex(columnName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(
-                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, currentTable));
+                        String.format("Invalid query: field '%s' not found in table '%s'.", columnName, tableName));
             }
 
             columnType = currentTable.getColumnType(columnIndex);
