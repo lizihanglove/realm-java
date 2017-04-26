@@ -1180,10 +1180,6 @@ public class Table implements TableSchema, NativeObject {
         return name.substring(TABLE_PREFIX.length());
     }
 
-    public static String getTableNameForClass(Class<?> clazz) {
-        return (clazz == null) ? null : getTableNameForClass(clazz.getSimpleName());
-    }
-
     public static String getTableNameForClass(String name) {
         if (name == null) { return null; }
         if (name.startsWith(TABLE_PREFIX)) {

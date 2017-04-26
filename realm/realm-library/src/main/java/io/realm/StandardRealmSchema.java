@@ -274,11 +274,11 @@ class StandardRealmSchema extends RealmSchema {
     /**
      * @inheritDoc
      *
+     * TODO:
      * I suspect that choosing the parsing strategy based on whether there is a ref to a ColumnIndices
      * around or not, is bad architecture.  Almost certainly, there should be a schema that has
      * ColumnIndices and one that does not and the strategies below should belong to the first
      * and second, respectively.  --gbm
-     *
      */
     @Override
     long[][] getColumnIndices(Table table, String fieldDescription, RealmFieldType... validColumnTypes) {
@@ -328,6 +328,12 @@ class StandardRealmSchema extends RealmSchema {
             if (i < nFields - 1) {
                 verifyColumnType(currentTable, columnName, columnType, RealmFieldType.OBJECT, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
                 currentTable = tableInfo.getLinkedTable(columnName);
+            }
+
+            //TODO: Remove this as soon as there are tests for LOs.
+            if (columnType == RealmFieldType.LINKING_OBJECTS) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid query: LinkingObjects are not yet supported in queries: '%s.%s'.", columnName, currentTable));
             }
 
             columnInfo[0][i] = columnIndex;
